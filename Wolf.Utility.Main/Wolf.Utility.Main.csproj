@@ -6,6 +6,13 @@
 
   <ItemGroup>
     <PackageReference Include="Ultz.XNFC" Version="1.1.0" />
+    <PackageReference Include="ZXing.Net.Mobile" Version="2.4.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Xamarin.Forms.Core">
+      <HintPath>..\..\..\..\..\Microsoft\Xamarin\NuGet\xamarin.forms\4.4.0.936621-pre1\lib\MonoAndroid90\Xamarin.Forms.Core.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>
