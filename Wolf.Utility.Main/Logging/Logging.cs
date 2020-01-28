@@ -111,8 +111,8 @@ namespace Wolf.Utility.Main.Logging
         {
             string result = type.ToString().ToUpper();
 
-            if (result.Length < 8) result += "\t \t";
-            else if (result.Length < 16) result += "\t";
+            if (result.Length < 10) result += "\t \t";
+            else if (result.Length < 20) result += "\t";
 
             result += DateTime.Now;
             result += "\t";
