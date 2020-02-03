@@ -10,6 +10,8 @@ namespace Wolf.Utility.Main.Logging
         private static string _path;
         private static bool _shouldLog;
 
+        public static string Path => _path;
+
         public static void Init(string path, bool shouldLog = true)
         {
             if (string.IsNullOrEmpty(path)) throw new ArgumentException("Value cannot be null or empty.", nameof(path));
