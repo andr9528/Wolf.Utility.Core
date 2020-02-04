@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Xml;
 
-namespace Wolf.Utility.Main.Xml
+namespace Wolf.Utility.Main.Transport
 {
     public class XmlManipulator
     {
