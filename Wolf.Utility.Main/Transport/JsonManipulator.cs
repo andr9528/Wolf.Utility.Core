@@ -23,7 +23,7 @@ namespace Wolf.Utility.Main.Transport
             if (path.Split('.').Last().ToLowerInvariant() != "json")
                 throw new ArgumentException("The path given did not end in 'json'");
 
-            string json = File.ReadAllText(path);
+            var json = File.ReadAllText(path);
             
             try
             {
@@ -87,11 +87,9 @@ namespace Wolf.Utility.Main.Transport
             if (!File.Exists(path))
                 File.Create(path).Dispose();
 
-            foreach (ValueTuple<string, object> element in elements)
+            foreach (var (propertyName, value) in elements)
             {
-                string propertyName = element.Item1;
-                object obj = element.Item2;
-                JsonManipulator.WriteValue<object>(path, propertyName, obj, false);
+                WriteValue(path, propertyName, value, false);
             }
         }
     }
