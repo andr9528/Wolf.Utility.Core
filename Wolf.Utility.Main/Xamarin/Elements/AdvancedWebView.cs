@@ -26,7 +26,7 @@ namespace Wolf.Utility.Main.Xamarin.Elements
         public AdvancedWebView()
         {
             LoadFinished += (sender, e) =>
-                InjectJavaScript(GetJSClickEvent);
+                InjectJavaScript(GetJsClickEvent());
 
             RegisterCallback("invokeClick", el => {
                 var args = new ClickEvent { Element = el };
@@ -37,16 +37,37 @@ namespace Wolf.Utility.Main.Xamarin.Elements
 
         }
 
+        public void WriteToField(string fieldId, string value)
+        {
+            InjectJavaScript(GetJsInputFieldInjection(fieldId, value));
+        }
         
 
         #region JS Strings
-        private string GetJSClickEvent => @"var x = 
-            document.body.addEventListener('click', function(e) {
-                e = e || window.event;
-                var target = e.target || e.srcElement;
-                Native('invokeClick', 'tag='+target.tagName+' id='+target.id+' name='+target.name);
-            }, true /* to ensure we capture it first*/);
-        ";
+        private string GetJsClickEvent()
+        {
+            var builder = new StringBuilder();
+
+            builder.Append("var x = document.body.addEventListener('click', function(e) ");
+            builder.Append("{");
+            builder.Append("e = e || window.event;");
+            builder.Append("var target = e.target || e.srcElement;");
+            builder.Append("Native('invokeClick', 'tag='+target.tagName+' id='+target.id+' name='+target.name);");
+            builder.Append("}, ");
+            builder.Append("true /* to ensure we capture it first*/);");
+
+            return builder.ToString();
+        }
+
+        private string GetJsInputFieldInjection(string fieldId, string value)
+        {
+            var builder = new StringBuilder();
+
+            builder.Append($"var field = document.getElementById(\"{fieldId}\");");
+            builder.Append($"var sec = field.value = {value};");
+
+            return builder.ToString();
+        }
         #endregion
 
     }
