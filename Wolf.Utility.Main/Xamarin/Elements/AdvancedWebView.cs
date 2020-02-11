@@ -39,7 +39,7 @@ namespace Wolf.Utility.Main.Xamarin.Elements
 
         public void WriteToField(string fieldId, string value)
         {
-            InjectJavaScript(GetJsInputFieldInjection(fieldId, value));
+            InjectJavaScript(GetJsSetInputField(fieldId, value));
         }
         
 
@@ -59,12 +59,14 @@ namespace Wolf.Utility.Main.Xamarin.Elements
             return builder.ToString();
         }
 
-        private string GetJsInputFieldInjection(string fieldId, string value)
+        private string GetJsSetInputField(string fieldId, string value)
         {
             var builder = new StringBuilder();
 
-            builder.Append($"var field = document.getElementById(\"{fieldId}\");");
-            builder.Append($"var sec = field.value = {value};");
+            //builder.Append($"if (document.getElementById(\"{fieldId}\"))");
+            //builder.Append("{");
+            builder.Append($"document.getElementById(\"{fieldId}\").value = {value};");
+            //builder.Append("}");
 
             return builder.ToString();
         }

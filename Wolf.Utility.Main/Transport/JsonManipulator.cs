@@ -30,10 +30,12 @@ namespace Wolf.Utility.Main.Transport
             if (path.Split('.').Last().ToLowerInvariant() != "json")
                 throw new ArgumentException("The path given did not end in 'json'");
 
-            var json = File.ReadAllText(path);
+            
             
             try
             {
+                var json = File.ReadAllText(path);
+
                 var obj = JObject.Parse(json);
                 if (obj != null)
                     return obj[propertyName].ToObject<T>();
@@ -53,7 +55,7 @@ namespace Wolf.Utility.Main.Transport
         /// <param name="path">Path of the Json file.</param>
         /// <param name="propertyName">Name of the property to return.</param>
         /// <returns></returns>
-        public static T ReadValueViaModel<T, U>(string path, string propertyName)
+        public static T ReadValueViaModel<T, U>(string path, string propertyName) where U : class, ISettingsModel
         {
             if (!File.Exists(path))
                 throw new ArgumentNullException(nameof(path), $@"No file Exist on the specified path => {path}");
@@ -61,10 +63,10 @@ namespace Wolf.Utility.Main.Transport
             if (path.Split('.').Last().ToLowerInvariant() != "json")
                 throw new ArgumentException("The path given did not end in 'json'");
 
-            var json = File.ReadAllText(path);
-
             try
             {
+                var json = File.ReadAllText(path);
+
                 var obj = JsonConvert.DeserializeObject<U>(json, new JsonSerializerSettings() 
                 { 
                     NullValueHandling = NullValueHandling.Ignore, 
@@ -97,10 +99,10 @@ namespace Wolf.Utility.Main.Transport
             if ((path.Split('.')).Last().ToLowerInvariant() != "json")
                 throw new ArgumentException("The path given did not end in 'json'");
 
-            var json = File.ReadAllText(path);
-
             try
             {
+                var json = File.ReadAllText(path);
+
                 var obj = new JObject();
                 try
                 {
@@ -127,12 +129,48 @@ namespace Wolf.Utility.Main.Transport
             }
             catch (Exception ex)
             {
+                throw;  
+            }
+        }
+
+        public static void WriteModel<U>(string path, U newModel, params string[] propertyNames) where U : class, ISettingsModel
+        {
+            if (!File.Exists(path))
+                throw new ArgumentNullException(nameof(path), $@"No file Exist on the specified path => {path}");
+
+            if ((path.Split('.')).Last().ToLowerInvariant() != "json")
+                throw new ArgumentException("The path given did not end in 'json'");
+            
+            try
+            {
+                var oldJson = File.ReadAllText(path);
+
+                var oldModel = JsonConvert.DeserializeObject<U>(oldJson,
+                    new JsonSerializerSettings() {TypeNameHandling = TypeNameHandling.All});
+
+                foreach (var name in propertyNames)
+                {
+                    var prop = newModel.GetType().GetProperties().First(x => x.Name == name);
+
+                    prop.SetValue(oldModel, prop.GetValue(newModel));
+                }
+
+                var newJson = JsonConvert.SerializeObject(oldModel, new JsonSerializerSettings()
+                {
+                    TypeNameHandling = TypeNameHandling.All
+                });
+
+                File.WriteAllText(path, newJson);
+            }
+            catch (Exception)
+            {
+
                 throw;
             }
         }
 
 
-        public static void InitializeJsonDoc(string path, params (string propertyName, object value)[] elements)
+        public static void InitializeJsonDoc(string path, params (string propertyName, object value)[] defaultElements)
         {
             if ((path.Split('.')).Last().ToLowerInvariant() != "json")
                 throw new ArgumentException("The path given did not end in 'json'");
@@ -140,7 +178,7 @@ namespace Wolf.Utility.Main.Transport
             if (!File.Exists(path))
                 File.Create(path).Dispose();
 
-            foreach (var (propertyName, value) in elements)
+            foreach (var (propertyName, value) in defaultElements)
             {
                 WriteValue(path, propertyName, value, false);
             }
