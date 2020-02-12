@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Input;
+using Wolf.Utility.Main.Logging.Enum;
 using Wolf.Utility.Main.Xamarin.Elements.Events;
 using Xamarin.Forms;
 using XLabs.Forms.Controls;
@@ -40,6 +41,8 @@ namespace Wolf.Utility.Main.Xamarin.Elements
         public void WriteToField(string fieldId, string value)
         {
             InjectJavaScript(GetJsSetInputField(fieldId, value));
+
+            
         }
         
 
@@ -67,6 +70,8 @@ namespace Wolf.Utility.Main.Xamarin.Elements
             //builder.Append("{");
             builder.Append($"document.getElementById(\"{fieldId}\").value = {value};");
             //builder.Append("}");
+
+            Logging.Logging.Log(LogType.Information, builder.ToString());
 
             return builder.ToString();
         }

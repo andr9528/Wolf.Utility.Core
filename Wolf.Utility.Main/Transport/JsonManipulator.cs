@@ -22,7 +22,7 @@ namespace Wolf.Utility.Main.Transport
         /// <param name="path">Path of the Json file.</param>
         /// <param name="propertyName">Name of the property to return.</param>
         /// <returns></returns>
-        public static T ReadValue<T>(string path, string propertyName)
+        public static T ReadValueViaPath<T>(string path, string propertyName)
         {
             if (!File.Exists(path))
                 throw new ArgumentNullException(nameof(path), $@"No file Exist on the specified path => {path}");
@@ -55,7 +55,7 @@ namespace Wolf.Utility.Main.Transport
         /// <param name="path">Path of the Json file.</param>
         /// <param name="propertyName">Name of the property to return.</param>
         /// <returns></returns>
-        public static T ReadValueViaModel<T, U>(string path, string propertyName) where U : class, ISettingsModel
+        public static T ReadValueViaModelViaPath<T, U>(string path, string propertyName) where U : class, ISettingsModel
         {
             if (!File.Exists(path))
                 throw new ArgumentNullException(nameof(path), $@"No file Exist on the specified path => {path}");
@@ -83,15 +83,8 @@ namespace Wolf.Utility.Main.Transport
                 throw;
             }
         }
-        /// <summary>
-        /// Persists values to a Json file under the specified 'propertyName'. 
-        /// </summary>
-        /// <typeparam name="T">The type of the value given to the method.</typeparam>
-        /// <param name="path">Path of the Json file.</param>
-        /// <param name="propertyName">Name of the property to update or create in the file.</param>
-        /// <param name="value">The value to put into the Json file, under the Attribute name defined by 'propertyName'.</param>
-        /// <param name="allowUpdate">Limit to whether or not the method is allowed to update existing values or only create new Attributes.</param>
-        public static void WriteValue<T>(string path, string propertyName, T value, bool allowUpdate = true)
+
+        public static U ReadModelFormPath<U>(string path) where U : class, ISettingsModel
         {
             if (!File.Exists(path))
                 throw new ArgumentNullException(nameof(path), $@"No file Exist on the specified path => {path}");
@@ -103,37 +96,18 @@ namespace Wolf.Utility.Main.Transport
             {
                 var json = File.ReadAllText(path);
 
-                var obj = new JObject();
-                try
-                {
-                    obj = JObject.Parse(json);
-                }
-                catch (Exception ex)
-                {
-                    Logging.Logging.Log(LogType.Warning,
-                        $"Failed to parse Json from the file located at => {path}; Continuing with a default JObject ");
-                }
+                var model = JsonConvert.DeserializeObject<U>(json,
+                    new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All });
 
-                var property = obj.Property(propertyName);
-                var str = JsonConvert.SerializeObject(value, Formatting.Indented, new JsonSerializerSettings()
-                {
-                    TypeNameHandling = TypeNameHandling.All
-                });
-
-                if (property == null)
-                    obj.Add(propertyName, str);
-                else if (allowUpdate)
-                    property.Value = str;
-
-                File.WriteAllText(path, obj.ToString());
+                return model;
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                throw;  
+                throw;
             }
         }
 
-        public static void WriteModel<U>(string path, U newModel, params string[] propertyNames) where U : class, ISettingsModel
+        public static void WriteModelToPath<U>(string path, U newModel, bool onlyUpdateIfDefault = false, params string[] propertyNames) where U : class, ISettingsModel
         {
             if (!File.Exists(path))
                 throw new ArgumentNullException(nameof(path), $@"No file Exist on the specified path => {path}");
@@ -143,34 +117,56 @@ namespace Wolf.Utility.Main.Transport
             
             try
             {
-                var oldJson = File.ReadAllText(path);
-
-                var oldModel = JsonConvert.DeserializeObject<U>(oldJson,
-                    new JsonSerializerSettings() {TypeNameHandling = TypeNameHandling.All});
-
-                foreach (var name in propertyNames)
+                if (propertyNames.Length == 0)
                 {
-                    var prop = newModel.GetType().GetProperties().First(x => x.Name == name);
+                    SerializeAndWriteModel(path, newModel);
+                }
+                else
+                {
+                    var oldJson = File.ReadAllText(path);
 
-                    prop.SetValue(oldModel, prop.GetValue(newModel));
+                    var oldModel = JsonConvert.DeserializeObject<U>(oldJson,
+                        new JsonSerializerSettings() { TypeNameHandling = TypeNameHandling.All }) ?? Activator.CreateInstance<U>();
+
+                    foreach (var name in propertyNames)
+                    {
+                        var prop = newModel.GetType().GetProperties().First(x => x.Name == name);
+
+                        var isEmptyOrDefault = oldJson.Length == 0 || prop.GetValue(oldModel) == default;
+
+                        if (isEmptyOrDefault && onlyUpdateIfDefault)
+                        {
+                            prop.SetValue(oldModel, prop.GetValue(newModel));
+                        }
+                        else if (!onlyUpdateIfDefault)
+                        {
+                            prop.SetValue(oldModel, prop.GetValue(newModel));
+                        }
+                    }
+
+                    SerializeAndWriteModel(path, oldModel);
                 }
 
-                var newJson = JsonConvert.SerializeObject(oldModel, new JsonSerializerSettings()
-                {
-                    TypeNameHandling = TypeNameHandling.All
-                });
-
-                File.WriteAllText(path, newJson);
+                
             }
             catch (Exception)
             {
-
                 throw;
             }
         }
 
+        private static void SerializeAndWriteModel<U>(string path, U model) where U : class, ISettingsModel
+        {
+            var newJson = JsonConvert.SerializeObject(model, new JsonSerializerSettings()
+            {
+                TypeNameHandling = TypeNameHandling.All
+            });
 
-        public static void InitializeJsonDoc(string path, params (string propertyName, object value)[] defaultElements)
+            File.WriteAllText(path, newJson);
+        }
+
+
+        public static void InitializeJsonDoc<U>(string path, U model, params string[] defaultElements) where U : class, ISettingsModel
         {
             if ((path.Split('.')).Last().ToLowerInvariant() != "json")
                 throw new ArgumentException("The path given did not end in 'json'");
@@ -178,10 +174,7 @@ namespace Wolf.Utility.Main.Transport
             if (!File.Exists(path))
                 File.Create(path).Dispose();
 
-            foreach (var (propertyName, value) in defaultElements)
-            {
-                WriteValue(path, propertyName, value, false);
-            }
+            WriteModelToPath(path, model, true, defaultElements);
         }
     }
 }
