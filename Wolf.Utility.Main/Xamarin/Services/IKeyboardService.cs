@@ -4,5 +4,6 @@
     {
         bool IsKeyboardShown { get; }
         void HideKeyboard();
+        void ReInitializeInputMethod();
     }
 }
