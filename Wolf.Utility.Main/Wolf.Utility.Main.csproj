@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="8.0.3" />
+    <PackageReference Include="Rg.Plugins.Popup" Version="1.2.0.223" />
     <PackageReference Include="Ultz.XNFC" Version="1.1.0" />
     <PackageReference Include="XLabs.Forms" Version="2.0.5782" />
     <PackageReference Include="ZXing.Net.Mobile" Version="2.4.1" />
@@ -33,6 +34,9 @@
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>Icons.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Xamarin\Views\PopupPage.xaml.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
     </Compile>
   </ItemGroup>
 
