@@ -9,10 +9,10 @@ namespace Wolf.Utility.Main.Logging
     {
         private static string _path;
         private static bool _shouldLog;
+        private static int _maxAge;
+        private static DateTime _dateOfBirth;
 
-        public static string Path => _path;
-
-        public static void Init(string path, bool shouldLog = true)
+        public static void Init(string path, DateTime dateOfBirth, int maxAge = 7, bool shouldLog = true)
         {
             if (string.IsNullOrEmpty(path)) throw new ArgumentException("Value cannot be null or empty.", nameof(path));
             
@@ -20,6 +20,8 @@ namespace Wolf.Utility.Main.Logging
             {
                 _path = path;
                 _shouldLog = shouldLog;
+                _maxAge = maxAge;
+                _dateOfBirth = dateOfBirth;
             }
         }
 
@@ -90,6 +92,12 @@ namespace Wolf.Utility.Main.Logging
                     }
                     else
                     {
+                        if (TimeSpan.FromDays(_maxAge) < DateTime.Now - _dateOfBirth)
+                        {
+                            File.Delete(_path);
+                            return AppStart();
+                        }
+
                         using (var writer = new StreamWriter(_path, true))
                         {
                             writer.WriteLine();
@@ -99,6 +107,30 @@ namespace Wolf.Utility.Main.Logging
                     }
 
                     return (true, null);
+                }
+                catch (Exception e)
+                {
+                    return (false, e);
+                }
+            }
+
+            return (false, null);
+        }
+
+        public static (bool didLog, Exception exception) RecreateLogFile()
+        {
+            if (_shouldLog)
+            {
+                try
+                {
+                    if (string.IsNullOrEmpty(_path))
+                        throw new NullReferenceException(
+                            $"{nameof(_path)} was null. Remember to call Init at start of the application");
+
+                    if (File.Exists(_path))
+                        File.Delete(_path);
+
+                    return AppStart();
                 }
                 catch (Exception e)
                 {

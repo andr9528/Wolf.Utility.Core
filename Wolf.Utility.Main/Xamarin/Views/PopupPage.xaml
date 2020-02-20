@@ -8,16 +8,7 @@
              mc:Ignorable="d"
              x:Class="Wolf.Utility.Main.Xamarin.Views.PopupPage">
     <pages:PopupPage.Animation>
-        <animations:ScaleAnimation 
-            PositionIn="Top"
-            PositionOut="Top"
-            ScaleIn="1.2"
-            ScaleOut="0.8"
-            DurationIn="400"
-            DurationOut="300"
-            EasingIn="SinOut"
-            EasingOut="SinIn"
-            HasBackgroundAnimation="True"/>
+        <animations:ScaleAnimation x:Name="Animation"/>
     </pages:PopupPage.Animation>
     
     <StackLayout VerticalOptions="Start" HorizontalOptions="CenterAndExpand" Margin="20, 10" x:Name="MainStack">
@@ -39,7 +30,8 @@
         Visually doesn't show them, but allows them to be added programatically to the right spots, as order of them should stay the same even if more rows are added.
         -->
         <StackLayout IsVisible="False">
-            <Button x:Name="CloseButton" VerticalOptions="CenterAndExpand" HorizontalOptions="CenterAndExpand" Clicked="CloseButton_OnClicked"/>
+            <Button x:Name="CancelButton" VerticalOptions="CenterAndExpand" HorizontalOptions="CenterAndExpand" Clicked="CloseButton_OnClicked"/>
+            <Button x:Name="OkButton" VerticalOptions="CenterAndExpand" HorizontalOptions="CenterAndExpand" Clicked="OkButton_OnClicked"/>
         </StackLayout>
 
     </StackLayout>
