@@ -28,7 +28,6 @@ namespace Wolf.Utility.Main.Xamarin.Elements
         {
             LoadFinished += (sender, e) =>
             {
-                InjectJavaScript(GetJsBodyClickEvent());
                 InjectJavaScript(GetJsEnterKeyPressEvent());
             };
 
