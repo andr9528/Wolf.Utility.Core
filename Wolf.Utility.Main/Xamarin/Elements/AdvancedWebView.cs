@@ -28,7 +28,7 @@ namespace Wolf.Utility.Main.Xamarin.Elements
         {
             LoadFinished += (sender, e) =>
             {
-                InjectJavaScript(GetJsClickEvent());
+                InjectJavaScript(GetJsBodyClickEvent());
                 InjectJavaScript(GetJsEnterKeyPressEvent());
             };
 
@@ -39,6 +39,15 @@ namespace Wolf.Utility.Main.Xamarin.Elements
                 ClickCommand?.Execute(args);
             });
 
+        }
+
+        public void AddClickEvent(string elementId = "")
+        {
+            var js = string.IsNullOrEmpty(elementId) ? GetJsBodyClickEvent() : GetJsElementClickEvent(elementId);
+
+            InjectJavaScript(js);
+
+            // Logging.Logging.Log(LogType.Information, $"Injected Javascript => {js}");
         }
 
         public void SetInputFocus(string inputId)
@@ -107,7 +116,7 @@ namespace Wolf.Utility.Main.Xamarin.Elements
             
             builder.Append($"if (document.getElementById('{inputId}'))");
             builder.Append("{");
-            builder.Append($"document.getElementById('{inputId}').addEventListener('keyup', function(event)");
+            builder.Append($"document.getElementById('{inputId}').addEventListener('keyup', function(event) ");
             builder.Append("{");
             //builder.Append("event.preventDefault();");
             builder.Append("if (event.key == 'Enter')");
@@ -132,7 +141,7 @@ namespace Wolf.Utility.Main.Xamarin.Elements
             return builder.ToString();
         }
         // Source: https://stackoverflow.com/questions/30397090/xamarin-forms-handle-clicked-event-on-webview
-        private string GetJsClickEvent()
+        private string GetJsBodyClickEvent()
         {
             var builder = new StringBuilder();
 
@@ -144,6 +153,24 @@ namespace Wolf.Utility.Main.Xamarin.Elements
             builder.Append("}, ");
             builder.Append("true /* to ensure we capture it first*/);");
 
+            return builder.ToString();
+        }
+
+        private string GetJsElementClickEvent(string elementId)
+        {
+            var builder = new StringBuilder();
+
+            builder.Append($"if (document.getElementById('{elementId}'))");
+            builder.Append("{");
+            builder.Append($"var x = document.getElementById('{elementId}').addEventListener('click', function(e) ");
+            builder.Append("{");
+            builder.Append("e = e || window.event;");
+            builder.Append("var target = e.target || e.srcElement;");
+            builder.Append("Native('invokeClick', 'tag='+target.tagName+' id='+target.id+' name='+target.name);");
+            builder.Append("}, ");
+            builder.Append("true /* to ensure we capture it first*/);");
+            builder.Append("}");
+            
             return builder.ToString();
         }
 
