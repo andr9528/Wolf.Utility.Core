@@ -40,6 +40,15 @@ namespace Wolf.Utility.Main.Xamarin.Elements
 
         }
 
+        public void ToggleElementFocus(string elementId, bool onlyUnFocus = true)
+        {
+            var js = GetJsInvertFocus(elementId, onlyUnFocus);
+
+            InjectJavaScript(js);
+
+            Logging.Logging.Log(LogType.Information, $"Injected Javascript => {js}");
+        }
+
         public void AddClickEvent(string elementId = "")
         {
             var js = string.IsNullOrEmpty(elementId) ? GetJsBodyClickEvent() : GetJsElementClickEvent(elementId);
@@ -87,6 +96,27 @@ namespace Wolf.Utility.Main.Xamarin.Elements
 
 
         #region JS Strings
+
+        private string GetJsInvertFocus(string elementId, bool onlyUnFocus)
+        {
+            var builder = new StringBuilder();
+
+            builder.Append($"if (document.getElementById('{elementId}'))");
+            builder.Append("{");
+            builder.Append($"var element = document.getElementById('{elementId}');");
+            builder.Append($"if (element === document.activeElement)");
+            builder.Append("{");
+            builder.Append($"element.blur();");
+            builder.Append("}");
+            builder.Append($"else if({onlyUnFocus} == False)");
+            builder.Append("{");
+            builder.Append($"element.focus();");
+            builder.Append("}");
+            builder.Append("}");
+
+            return builder.ToString();
+        }
+
         // Source: https://stackoverflow.com/questions/3276794/jquery-or-pure-js-simulate-enter-key-pressed-for-testing
         private string GetJsEnterKeyPressDispatch(string inputId)
         {
