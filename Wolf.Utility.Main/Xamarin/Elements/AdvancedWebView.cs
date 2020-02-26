@@ -46,7 +46,7 @@ namespace Wolf.Utility.Main.Xamarin.Elements
 
             InjectJavaScript(js);
 
-            Logging.Logging.Log(LogType.Information, $"Injected Javascript => {js}");
+            // Logging.Logging.Log(LogType.Information, $"Injected Javascript => {js}");
         }
 
         public void AddClickEvent(string elementId = "")
@@ -57,16 +57,7 @@ namespace Wolf.Utility.Main.Xamarin.Elements
 
             // Logging.Logging.Log(LogType.Information, $"Injected Javascript => {js}");
         }
-
-        public void SetInputFocus(string inputId)
-        {
-            var js = GetJsSetFocus(inputId);
-
-            InjectJavaScript(js);
-
-            // Logging.Logging.Log(LogType.Information, $"Injected Javascript => {js}");
-        }
-
+        
         public void PressEnter(string inputId)
         {
             var js = GetJsEnterKeyPressDispatch(inputId);
@@ -153,18 +144,6 @@ namespace Wolf.Utility.Main.Xamarin.Elements
             builder.Append($"document.getElementById('{buttonId}').click();");
             builder.Append("}");
             builder.Append("});");
-            builder.Append("}");
-
-            return builder.ToString();
-        }
-        // Source: https://stackoverflow.com/questions/17500704/javascript-set-focus-to-html-form-element
-        private string GetJsSetFocus(string inputId)
-        {
-            var builder = new StringBuilder();
-
-            builder.Append($"if (document.getElementById('{inputId}'))");
-            builder.Append("{");
-            builder.Append($"document.getElementById('{inputId}').focus();");
             builder.Append("}");
 
             return builder.ToString();
