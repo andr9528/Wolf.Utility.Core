@@ -9,7 +9,6 @@ using Newtonsoft.Json.Linq;
 using Wolf.Utility.Main.Exceptions;
 using Wolf.Utility.Main.Logging;
 using Wolf.Utility.Main.Logging.Enum;
-using ZXing;
 
 namespace Wolf.Utility.Main.Transport
 {
