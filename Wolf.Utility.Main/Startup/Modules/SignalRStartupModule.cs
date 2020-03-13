@@ -13,11 +13,12 @@ namespace Wolf.Utility.Main.Startup.Modules
 {
     public class SignalRStartupModule : IStartupModule
     {
-        private readonly List<Hub> hubs;
+        public SetupRouteDelegate SetupRoute { get; }
+        public delegate void SetupRouteDelegate(HubRouteBuilder builder);
 
-        public SignalRStartupModule(params Hub[] hubs)
+        public SignalRStartupModule(SetupRouteDelegate setup)
         {
-            this.hubs = hubs.ToList();
+            SetupRoute = setup ?? throw new ArgumentNullException(nameof(setup));
         }
 
         public void SetupServices(IServiceCollection services)
@@ -27,13 +28,7 @@ namespace Wolf.Utility.Main.Startup.Modules
 
         public void ConfigureApplication(IApplicationBuilder app)
         {
-            app.UseSignalR(route =>
-            {
-                foreach (var hub in hubs)
-                {
-                    route.MabHub($"/{hub.GetType().Name}", hub);
-                }
-            });
+            app.UseSignalR(route => SetupRoute?.Invoke(route));
         }
     }
 }
