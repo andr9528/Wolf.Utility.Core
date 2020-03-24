@@ -12,19 +12,17 @@ namespace Wolf.Utility.Main.Persistence.EntityFramework
 {
     public class EntityFrameworkStartupModule<TContext, THandler> : IStartupModule where TContext : DbContext where THandler : class, IHandler
     {
-        public IConfiguration Configuration { get; }
-        public string ConnectionStringName { get; }
+        public SetupOptionsDelegate SetupOptions { get; }
+        public delegate void SetupOptionsDelegate(DbContextOptionsBuilder options);
 
-        public EntityFrameworkStartupModule(IConfiguration configuration, string connectionStringName)
+        public EntityFrameworkStartupModule(SetupOptionsDelegate setup)
         {
-            Configuration = configuration;
-            ConnectionStringName = connectionStringName;
+            SetupOptions = setup;
         }
 
         public void SetupServices(IServiceCollection services)
         {
-            services.AddDbContext<TContext>(option =>
-                option.UseSqlServer(Configuration.GetConnectionString(ConnectionStringName)));
+            services.AddDbContext<TContext>(option => SetupOptions?.Invoke(option));
 
             services.AddTransient<IHandler, THandler>();
         }

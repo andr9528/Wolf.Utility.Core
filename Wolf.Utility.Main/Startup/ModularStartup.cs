@@ -42,7 +42,7 @@ namespace Wolf.Utility.Main.Startup
             }
         }
 
-        protected void ConfigureApplication(IApplicationBuilder app)
+        protected void SetupApplication(IApplicationBuilder app)
         {
             Log(LogType.Information, $"Configuring Application...");
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 using Wolf.Utility.Main.Persistence.Core;
 
 namespace Wolf.Utility.Main.Persistence.EntityFramework.Core
