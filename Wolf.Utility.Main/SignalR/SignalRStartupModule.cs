@@ -1,15 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Wolf.Utility.Main.Extensions;
+using Wolf.Utility.Main.Startup;
 
-namespace Wolf.Utility.Main.Startup.Modules
+namespace Wolf.Utility.Main.SignalR
 {
     public class SignalRStartupModule : IStartupModule
     {

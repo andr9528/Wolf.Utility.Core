@@ -12,12 +12,14 @@ namespace Wolf.Utility.Main.Persistence.EntityFramework
 {
     public class EntityFrameworkStartupModule<TContext, THandler> : IStartupModule where TContext : DbContext where THandler : class, IHandler
     {
+        private readonly bool migrateOnStartup;
         public SetupOptionsDelegate SetupOptions { get; }
         public delegate void SetupOptionsDelegate(DbContextOptionsBuilder options);
 
-        public EntityFrameworkStartupModule(SetupOptionsDelegate setup)
+        public EntityFrameworkStartupModule(SetupOptionsDelegate setup, bool migrateOnStartup = true)
         {
-            SetupOptions = setup;
+            this.migrateOnStartup = migrateOnStartup;
+            SetupOptions = setup ?? throw new ArgumentNullException(nameof(setup));
         }
 
         public void SetupServices(IServiceCollection services)
@@ -29,7 +31,16 @@ namespace Wolf.Utility.Main.Persistence.EntityFramework
 
         public void ConfigureApplication(IApplicationBuilder app)
         {
-            
+            if (migrateOnStartup)
+            {
+                using (var service = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
+                {
+                    using (var context = service.ServiceProvider.GetService<TContext>())
+                    {
+                        context.Database.Migrate();
+                    }
+                } 
+            }
         }
     }
 }
