@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Wolf.Utility.Main.Persistence.Core;
 
@@ -8,30 +9,18 @@ namespace Wolf.Utility.Main.Persistence.EntityFramework.Core
 {
     public interface IHandler
     {
-        void Save();
+        Task Save();
 
-        T Find<T>(T predicate) where T : class, IEntity;
+        Task<T> Find<T>(T predicate) where T : class, IEntity;
 
-        ICollection<T> FindMultiple<T>(T predicate) where T : class, IEntity;
+        Task<IEnumerable<T>> FindMultiple<T>(T predicate) where T : class, IEntity;
+        
+        Task<bool> Update<T>(T element, bool autoSave = true) where T : class, IEntity;
+        
+        Task<bool> Delete<T>(T element, bool autoSave = true) where T : class, IEntity;
 
-        /// <summary>
-        /// Remember to call Save!
-        /// </summary>
-        bool Update<T>(T element) where T : class, IEntity;
+        Task<bool> Add<T>(T element, bool autoSave = true) where T : class, IEntity;
 
-        /// <summary>
-        /// Remember to call Save!
-        /// </summary>
-        bool Delete<T>(T element) where T : class, IEntity;
-
-        /// <summary>
-        /// Remember to call Save!
-        /// </summary>
-        bool Add<T>(T element) where T : class, IEntity;
-
-        /// <summary>
-        /// Remember to call Save!
-        /// </summary>
-        string AddMultiple<T>(ICollection<T> elements) where T : class, IEntity;
+        Task<string> AddMultiple<T>(ICollection<T> elements) where T : class, IEntity;
     }
 }
