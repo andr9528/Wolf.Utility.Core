@@ -29,7 +29,7 @@ namespace Wolf.Utility.Main.SignalR
             Logging.Logging.Log(LogType.Event, $"{nameof(THub)}: Client Disconnected with Id: {Context.ConnectionId}");
             if (exception != null)
                 Logging.Logging.Log(LogType.Exception,
-                    $"{nameof(THub)}: Connection with {Context.ConnectionId} Closed due to an Exception -> {exception.GetType()} => {exception.Message}; Stacktrace => {exception.StackTrace}");
+                    $"{nameof(THub)}: Connection with an Id of {Context.ConnectionId} Closed due to an Exception -> {exception.GetType()} => {exception.Message}; Stacktrace => {exception.StackTrace}");
             ConnectedIds.Remove(Context.ConnectionId);
             return base.OnDisconnectedAsync(exception);
         }
