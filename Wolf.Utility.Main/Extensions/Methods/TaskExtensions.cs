@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace Wolf.Utility.Main.Extensions
+namespace Wolf.Utility.Main.Extensions.Methods
 {
     public static class TaskExtensions
     {

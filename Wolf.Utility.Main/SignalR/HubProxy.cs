@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
 using Wolf.Utility.Main.Extensions;
+using Wolf.Utility.Main.Extensions.Methods;
 using Wolf.Utility.Main.Logging.Enum;
 
 namespace Wolf.Utility.Main.SignalR

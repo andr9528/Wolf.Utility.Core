@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
-namespace Wolf.Utility.Main.Extensions
+namespace Wolf.Utility.Main.Extensions.Methods
 {
     public static class CollectionExtensions
     {

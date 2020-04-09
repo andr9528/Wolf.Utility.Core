@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR;
 
-namespace Wolf.Utility.Main.Extensions
+namespace Wolf.Utility.Main.Extensions.Methods
 {
     public static class HubRouteBuilderExtensions
     {

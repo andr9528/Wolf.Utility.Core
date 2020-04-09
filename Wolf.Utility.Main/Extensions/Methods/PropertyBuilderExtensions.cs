@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-
-namespace Wolf.Utility.Main.Extensions
+﻿namespace Wolf.Utility.Main.Extensions.Methods
 {
     public static class PropertyBuilderExtensions
     {
