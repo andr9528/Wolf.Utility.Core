@@ -8,7 +8,7 @@ namespace Wolf.Utility.Main.Extensions.Methods
 {
     public static class HttpClientExtensions
     {
-        public static Task<HttpResponseMessage> PostAsJsonAsync<T>(this HttpClient httpClient, string url, T data) where T : class
+        public static Task<HttpResponseMessage> PostAsJsonAsync<T>(this HttpClient httpClient, string url, T data)
         {
             var dataAsString = JsonConvert.SerializeObject(data, Formatting.Indented,
                 new JsonSerializerSettings
@@ -23,7 +23,7 @@ namespace Wolf.Utility.Main.Extensions.Methods
             return httpClient.PostAsync(url, content);
         }
 
-        public static Task<HttpResponseMessage> PutAsJsonAsync<T>(this HttpClient httpClient, string url, T data) where T : class
+        public static Task<HttpResponseMessage> PutAsJsonAsync<T>(this HttpClient httpClient, string url, T data)
         {
             var dataAsString = JsonConvert.SerializeObject(data, Formatting.Indented,
                 new JsonSerializerSettings
@@ -37,7 +37,7 @@ namespace Wolf.Utility.Main.Extensions.Methods
             return httpClient.PutAsync(url, content);
         }
 
-        public static Task<HttpResponseMessage> DeleteByJsonAsync<T>(this HttpClient httpClient, string url, T data) where T : class
+        public static Task<HttpResponseMessage> DeleteByJsonAsync<T>(this HttpClient httpClient, string url, T data)
         {
             var dataAsString = JsonConvert.SerializeObject(data, Formatting.Indented,
                 new JsonSerializerSettings
@@ -58,7 +58,7 @@ namespace Wolf.Utility.Main.Extensions.Methods
             return httpClient.SendAsync(request);
         }
 
-        public static Task<HttpResponseMessage> GetByJsonAsync<T>(this HttpClient httpClient, string url, T data) where T : class
+        public static Task<HttpResponseMessage> GetByJsonAsync<T>(this HttpClient httpClient, string url, T data)
         {
             var dataAsString = JsonConvert.SerializeObject(data, Formatting.Indented,
                 new JsonSerializerSettings
@@ -87,7 +87,7 @@ namespace Wolf.Utility.Main.Extensions.Methods
         /// <param name="url"></param>
         /// <param name="data"></param>
         /// <returns></returns>
-        public static Task<HttpResponseMessage> GetByQueryAsync<T>(this HttpClient httpClient, string url, T data) where T : class
+        public static Task<HttpResponseMessage> GetByQueryAsync<T>(this HttpClient httpClient, string url, T data)
         {
             var builder = new UriBuilder($"{httpClient.BaseAddress}{url}?");
             var type = typeof(T);
