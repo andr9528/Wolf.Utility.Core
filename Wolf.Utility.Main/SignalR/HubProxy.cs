@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR.Client;
-using Wolf.Utility.Main.Extensions;
 using Wolf.Utility.Main.Extensions.Methods;
 using Wolf.Utility.Main.Logging.Enum;
+#pragma warning disable 4014
+
+#pragma warning disable 1998
 
 namespace Wolf.Utility.Main.SignalR
 {
@@ -16,18 +15,39 @@ namespace Wolf.Utility.Main.SignalR
     public abstract class HubProxy
     {
         public delegate void SetupHubConnectionDelegate(HubConnection connection);
-        
+
+        public delegate void ConnectionChangedDelegate(HubConnection connection, string hubName, EventArgs args);
+            
+        public event ConnectionChangedDelegate OnConnected;
+        public event ConnectionChangedDelegate OnDisconnected;
+
+        private Task ConnectedEventHandlerStatus { get; set; }
+        private Task DisconnectedEventHandlerStatus { get; set; }
+
+        private string HubNameWithDefault => string.IsNullOrEmpty(HubName) ? "Hub" : HubName;
+
+
         protected HubConnection Connection;
-        protected string HubName { get; private set; }
+        protected string HubName { get; set; }
 
         public bool ShouldReconnect { get; set; }
 
-        protected async Task Init(string baseAddress, string hubName, SetupHubConnectionDelegate setup, bool shouldReconnect = true)
+        protected async Task Init(string baseAddress, SetupHubConnectionDelegate setup, string accessToken = "",
+            bool shouldReconnect = true, string hubName = "")
         {
             HubName = hubName;
             ShouldReconnect = shouldReconnect;
 
-            Connection = new HubConnectionBuilder().WithUrl($"{baseAddress}{hubName}").Build();
+            if(string.IsNullOrEmpty(accessToken))
+                Connection = new HubConnectionBuilder().WithUrl($"{baseAddress}{hubName}").Build();
+            else
+                Connection = new HubConnectionBuilder().WithUrl($"{baseAddress}{hubName}", options =>
+                {
+                    async Task<string> OptionsAccessTokenProvider() => accessToken;
+
+                    options.AccessTokenProvider = OptionsAccessTokenProvider;
+                }).Build();
+            
             Connection.Closed += Connection_Closed;
 
             setup.Invoke(Connection);
@@ -42,7 +62,7 @@ namespace Wolf.Utility.Main.SignalR
                 if (Connection.State != HubConnectionState.Connected)
                 {
                     Logging.Logging.Log(LogType.Warning,
-                        $"Connection State is not Connected. Attempting to start Connection...");
+                        "Connection State is not Connected. Attempting to start Connection...");
                     await Connect(4);
 
                     if (Connection.State != HubConnectionState.Disconnected)
@@ -74,34 +94,65 @@ namespace Wolf.Utility.Main.SignalR
 
         protected async Task Connect()
         {
-            Logging.Logging.Log(LogType.Information, $"Attempting to connect to {HubName} and awaiting response...");
+            AwaitConnectedState();
+            Logging.Logging.Log(LogType.Information, $"Attempting to connect to {HubNameWithDefault} and awaiting response...");
             await Connection.StartAsync();
-            Logging.Logging.Log(LogType.Information, $"Connected to {HubName}...");
+            Logging.Logging.Log(LogType.Information, $"Connected to {HubNameWithDefault}...");
         }
 
         protected Task Connect(int maxAttempts)
         {
+            AwaitConnectedState();
+
             Logging.Logging.Log(LogType.Information,
-                $"State of connection to {HubName} before attempting to connect: {Connection.State}");
+                $"State of connection to {HubNameWithDefault} before attempting to connect: {Connection.State}");
             var attempts = 0;
             while (true)
             {
-                Logging.Logging.Log(LogType.Information, $"Attempt to connect to {HubName} nr. {attempts + 1}");
+                Logging.Logging.Log(LogType.Information, $"Attempt to connect to {HubNameWithDefault} nr. {attempts + 1}");
                 Task.Run(async () => await Connection.StartAsync());
 
                 if (Connection.State == HubConnectionState.Disconnected)
                 {
-                    Logging.Logging.Log(LogType.Information, $"State of {HubName} Connection: {HubConnectionState.Disconnected}");
+                    Logging.Logging.Log(LogType.Information, $"State of {HubNameWithDefault} Connection: {HubConnectionState.Disconnected}");
                     attempts += 1;
                     if (attempts == maxAttempts) return Task.CompletedTask;
                     continue;
                 }
 
-                Logging.Logging.Log(LogType.Information, $"State of {HubName} Connection: {Connection.State}");
+                Logging.Logging.Log(LogType.Information, $"State of {HubNameWithDefault} Connection: {Connection.State}");
                 break;
             }
 
             return Task.CompletedTask;
+        }
+
+        private async Task AwaitConnectedState()
+        {
+            if (ConnectedEventHandlerStatus == null)
+            {
+                ConnectedEventHandlerStatus = Task.CompletedTask.WaitUntil(() => Connection.State == HubConnectionState.Connected);
+                await ConnectedEventHandlerStatus;
+                ConnectedEventHandlerStatus = null;
+
+                OnConnected?.Invoke(Connection, HubNameWithDefault, EventArgs.Empty);
+
+                AwaitDisconnectedState();
+            }
+        }
+
+        private async Task AwaitDisconnectedState()
+        {
+            if (DisconnectedEventHandlerStatus == null)
+            {
+                DisconnectedEventHandlerStatus = Task.CompletedTask.WaitUntil(() => Connection.State == HubConnectionState.Disconnected);
+                await DisconnectedEventHandlerStatus;
+                DisconnectedEventHandlerStatus = null;
+
+                OnDisconnected?.Invoke(Connection, HubNameWithDefault, EventArgs.Empty);
+
+                AwaitConnectedState();
+            }
         }
 
     }
