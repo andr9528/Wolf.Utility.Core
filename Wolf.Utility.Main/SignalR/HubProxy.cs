@@ -41,10 +41,6 @@ namespace Wolf.Utility.Main.SignalR
         private Task DisconnectedEventHandlerStatus { get; set; }
         private Task ConnectingEventHandlerStatus { get; set; }
 
-        
-
-        
-
         public bool ShouldReconnect { get; set; }
 
         protected HubProxy(bool logInEventAwaiting = false)
