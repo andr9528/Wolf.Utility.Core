@@ -40,6 +40,7 @@ namespace Wolf.Utility.Main.SignalR
         private Task ConnectedEventHandlerStatus { get; set; }
         private Task DisconnectedEventHandlerStatus { get; set; }
         private Task ConnectingEventHandlerStatus { get; set; }
+        private int EventCheckFrequency { get; set; }
 
         public bool ShouldReconnect { get; set; }
 
@@ -50,11 +51,12 @@ namespace Wolf.Utility.Main.SignalR
             this.logInEventAwaiting = logInEventAwaiting;
         }
 
-        protected async Task Init(string baseAddress, string hubName, SetupHubConnectionDelegate setup,
+        protected async Task Init(string baseAddress, string hubName, SetupHubConnectionDelegate setup, TimeSpan eventCheckFrequency,
             bool shouldReconnect = true, bool isAzureConnection = false)
         {
             HubName = hubName;
             ShouldReconnect = shouldReconnect;
+            EventCheckFrequency = eventCheckFrequency.Milliseconds;
 
             Connection =  isAzureConnection ? await InitAzure(baseAddress, hubName) : InitSelf(baseAddress, hubName);
             
@@ -185,7 +187,7 @@ namespace Wolf.Utility.Main.SignalR
         {
             if (ConnectedEventHandlerStatus == null)
             {
-                ConnectedEventHandlerStatus = Task.CompletedTask.WaitUntil(() => Connection.State == HubConnectionState.Connected, 500, 
+                ConnectedEventHandlerStatus = Task.CompletedTask.WaitUntil(() => Connection.State == HubConnectionState.Connected, EventCheckFrequency, 
                     shouldLogInLoop: logInEventAwaiting, logMessage: () => $"Waiting for connection state to become {HubConnectionState.Connected}. Current state is: {Connection.State}");
                 await ConnectedEventHandlerStatus;
                 ConnectedEventHandlerStatus = null;
@@ -202,7 +204,7 @@ namespace Wolf.Utility.Main.SignalR
         {
             if (DisconnectedEventHandlerStatus == null)
             {
-                DisconnectedEventHandlerStatus = Task.CompletedTask.WaitUntil(() => Connection.State == HubConnectionState.Disconnected, 500,
+                DisconnectedEventHandlerStatus = Task.CompletedTask.WaitUntil(() => Connection.State == HubConnectionState.Disconnected, EventCheckFrequency,
                     shouldLogInLoop: logInEventAwaiting, logMessage: () => $"Waiting for connection state to become {HubConnectionState.Disconnected}. Current state is: {Connection.State}");
                 await DisconnectedEventHandlerStatus;
                 DisconnectedEventHandlerStatus = null;
@@ -221,7 +223,7 @@ namespace Wolf.Utility.Main.SignalR
             {
                 ConnectingEventHandlerStatus = Task.CompletedTask.WaitUntil(
                     () => Connection.State == HubConnectionState.Connecting ||
-                          Connection.State == HubConnectionState.Reconnecting, 500,
+                          Connection.State == HubConnectionState.Reconnecting, EventCheckFrequency,
                     shouldLogInLoop: logInEventAwaiting, logMessage: () => $"Waiting for connection state to become {HubConnectionState.Connecting}" +
                                                        $" or {HubConnectionState.Reconnecting}. Current state is: {Connection.State}");
                 await ConnectingEventHandlerStatus;
