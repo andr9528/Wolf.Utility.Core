@@ -147,6 +147,12 @@ namespace Wolf.Utility.Main.SignalR
             }
         }
 
+        public void Reconnect(int attempts = 1)
+        {
+            using (var unused = attempts == 1 ? Connect() : Connect(attempts))
+            { }
+        }
+
         protected async Task Connect()
         {
             AwaitConnectingState();
