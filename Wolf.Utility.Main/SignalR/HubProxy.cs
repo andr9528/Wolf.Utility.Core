@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.SignalR.Client;
@@ -52,13 +53,13 @@ namespace Wolf.Utility.Main.SignalR
         }
 
         protected async Task Init(string baseAddress, string hubName, SetupHubConnectionDelegate setup, TimeSpan eventCheckFrequency,
-            bool shouldReconnect = true, bool isAzureConnection = false)
+            bool shouldReconnect = true, bool isAzureConnection = false, bool negotiateViaPost = false)
         {
             HubName = hubName;
             ShouldReconnect = shouldReconnect;
             EventCheckFrequency = eventCheckFrequency.Milliseconds;
 
-            Connection =  isAzureConnection ? await InitAzure(baseAddress, hubName) : InitSelf(baseAddress, hubName);
+            Connection =  isAzureConnection ? await InitAzure(baseAddress, hubName, negotiateViaPost) : InitSelf(baseAddress, hubName);
             
             Connection.Closed += Connection_Closed;
 
@@ -86,8 +87,9 @@ namespace Wolf.Utility.Main.SignalR
         /// </summary>
         /// <param name="baseAddress"></param>
         /// <param name="hubName"></param>
+        /// <param name="negotiateViaPost"></param>
         /// <returns></returns>
-        private async Task<HubConnection> InitAzure(string baseAddress, string hubName)
+        private async Task<HubConnection> InitAzure(string baseAddress, string hubName, bool negotiateViaPost = false)
         {
             NegotiateInfo info = null;
 
@@ -95,7 +97,16 @@ namespace Wolf.Utility.Main.SignalR
             {
                 var url = $"{baseAddress}/api/negotiate";
                 Logging.Logging.Log(LogType.Information, $"Getting Negotiation Information from: {url}");
-                var negotiate = await new HttpClient().GetStringAsync(url);
+
+                var negotiate = "";
+
+                using (var client = new HttpClient())
+                {
+                    negotiate = !negotiateViaPost
+                        ? await client.GetStringAsync(url)
+                        : await client.GetStringViaPostAsync(url);
+                }
+
                 info = JsonConvert.DeserializeObject<NegotiateInfo>(negotiate);
             }
             catch (HttpRequestException e)
@@ -149,8 +160,8 @@ namespace Wolf.Utility.Main.SignalR
 
         public void Reconnect(int attempts = 1)
         {
-            using (var unused = attempts == 1 ? Connect() : Connect(attempts))
-            { }
+            if (ConnectionState != HubConnectionState.Disconnected) return;
+            using (var unused = attempts == 1 ? Connect() : Connect(attempts)) { }
         }
 
         protected async Task Connect()

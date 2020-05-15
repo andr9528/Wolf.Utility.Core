@@ -8,6 +8,21 @@ namespace Wolf.Utility.Main.Extensions.Methods
 {
     public static class HttpClientExtensions
     {
+        /// <summary>
+        /// Ensures the call was successful, meaning it will crash, if it failed.
+        /// </summary>
+        /// <param name="httpClient"></param>
+        /// <param name="url"></param>
+        /// <param name="content"></param>
+        /// <returns></returns>
+        public static async Task<string> GetStringViaPostAsync(this HttpClient httpClient, string url, HttpContent content = null)
+        {
+            var response = await httpClient.PostAsync(url, content);
+            response.EnsureSuccessStatusCode();
+
+            return await response.Content.ReadAsStringAsync();
+        }
+
         public static Task<HttpResponseMessage> PostAsJsonAsync<T>(this HttpClient httpClient, string url, T data)
         {
             var dataAsString = JsonConvert.SerializeObject(data, Formatting.Indented,
