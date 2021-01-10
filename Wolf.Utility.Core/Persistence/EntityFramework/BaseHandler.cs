@@ -14,6 +14,7 @@ namespace Wolf.Utility.Core.Persistence.EntityFramework
     public abstract class BaseHandler<TContext> : IHandler where TContext : DbContext
     {
         protected TContext Context { get; }
+        protected object ContextLock { get; } = new { };
 
         protected BaseHandler(TContext context)
         {
@@ -193,21 +194,27 @@ namespace Wolf.Utility.Core.Persistence.EntityFramework
 
         private T FindOneResult<T>(IQueryable<T> query) where T : class, IEntity
         {
-            var result = query.ToList();
-            if (result.Count() == 1)
-                return result.First();
-            if (result.Count() > 1)
-                throw IncorrectResultCountException<T>.Constructor(1, result.Count, true, result);
-            throw IncorrectResultCountException<T>.Constructor(1, result.Count, elements: new List<T>());
+            lock (ContextLock)
+            {
+                var result = query.ToList();
+                if (result.Count() == 1)
+                    return result.First();
+                if (result.Count() > 1)
+                    throw IncorrectResultCountException<T>.Constructor(1, result.Count, true, result);
+                throw IncorrectResultCountException<T>.Constructor(1, result.Count, elements: new List<T>()); 
+            }
         }
 
         private ICollection<T> FindMultipleResults<T>(IQueryable<T> query) where T : class, IEntity
         {
-            var result = query.ToList();
-            if (result.Any())
-                //return new List<T>(result);
-                return result;
-            throw IncorrectResultCountException<T>.Constructor(1, result.Count, elements: new List<T>());
+            lock (ContextLock)
+            {
+                var result = query.ToList();
+                if (result.Any())
+                    //return new List<T>(result);
+                    return result;
+                throw IncorrectResultCountException<T>.Constructor(1, result.Count, elements: new List<T>()); 
+            }
         }
 
         #endregion
