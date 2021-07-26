@@ -5,9 +5,9 @@ using Wolf.Utility.Core.Persistence.Core;
 
 namespace Wolf.Utility.Core.Exceptions
 {
-    public class IncorrectResultCountException<T> : BaseException where T : class, IEntity
+    public class IncorrectCountException<T> : BaseException
     {
-        public static IncorrectResultCountException<T> Constructor(int expectedCount, int actualCount,
+        public static IncorrectCountException<T> Constructor(int expectedCount, int actualCount,
             bool perfectMatch = false, IEnumerable<T> elements = null)
         {
             bool toMany = false;
@@ -15,11 +15,11 @@ namespace Wolf.Utility.Core.Exceptions
             {
                 case true:
                     if (expectedCount < actualCount) toMany = true;
-                    return new IncorrectResultCountException<T>(
+                    return new IncorrectCountException<T>(
                             $"Expected to find exactly {expectedCount}, but actually found {actualCount} of the entity type {typeof(T).Name}")
                     { ActualCount = actualCount, ExpectedCount = expectedCount, ToMany = toMany, Elements = elements };
                 case false:
-                    return new IncorrectResultCountException<T>(
+                    return new IncorrectCountException<T>(
                             $"Expected to find at least {expectedCount}, but actually found {actualCount} of the entity type {typeof(T).Name}")
                     { ActualCount = actualCount, ExpectedCount = expectedCount, Elements = elements };
                 default: return null;
@@ -39,7 +39,7 @@ namespace Wolf.Utility.Core.Exceptions
         }
 
 
-        protected IncorrectResultCountException(string message) : base(message)
+        protected IncorrectCountException(string message) : base(message)
         {
 
         }

@@ -200,8 +200,8 @@ namespace Wolf.Utility.Core.Persistence.EntityFramework
                 if (result.Count() == 1)
                     return result.First();
                 if (result.Count() > 1)
-                    throw IncorrectResultCountException<T>.Constructor(1, result.Count, true, result);
-                throw IncorrectResultCountException<T>.Constructor(1, result.Count, elements: new List<T>()); 
+                    throw IncorrectEntityCountException<T>.Constructor(1, result.Count, true, result);
+                throw IncorrectEntityCountException<T>.Constructor(1, result.Count, elements: new List<T>()); 
             }
         }
 
@@ -213,7 +213,7 @@ namespace Wolf.Utility.Core.Persistence.EntityFramework
                 if (result.Any())
                     //return new List<T>(result);
                     return result;
-                throw IncorrectResultCountException<T>.Constructor(1, result.Count, elements: new List<T>()); 
+                throw IncorrectEntityCountException<T>.Constructor(1, result.Count, elements: new List<T>()); 
             }
         }
 
