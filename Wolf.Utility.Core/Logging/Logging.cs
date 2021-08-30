@@ -5,6 +5,7 @@ using Wolf.Utility.Core.Logging.Enum;
 
 namespace Wolf.Utility.Core.Logging
 {
+    [Obsolete("Use NLog Startup Module instead, as it makes use of ILogger.")]
     public class Logging
     {
         private static string _path;
