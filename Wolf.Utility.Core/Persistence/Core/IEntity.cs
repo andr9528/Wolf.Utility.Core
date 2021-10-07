@@ -8,5 +8,7 @@ namespace Wolf.Utility.Core.Persistence.Core
     {
         int Id { get; set; }
         byte[] Version { get; set; }
+        DateTime CreatedDate { get; set; }
+        DateTime UpdatedDate { get; set; }
     }
 }

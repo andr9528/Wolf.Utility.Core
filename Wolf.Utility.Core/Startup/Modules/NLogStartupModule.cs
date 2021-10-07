@@ -6,7 +6,7 @@ using NLog.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Wolf.Utility.Core.Startup.Assist;
+using Wolf.Utility.Core.Logging;
 
 namespace Wolf.Utility.Core.Startup.Modules
 {

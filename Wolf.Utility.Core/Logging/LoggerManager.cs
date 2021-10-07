@@ -3,17 +3,17 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Wolf.Utility.Core.Startup.Assist
+namespace Wolf.Utility.Core.Logging
 {
     /// <summary>
     /// https://code-maze.com/net-core-web-development-part3/
     /// </summary>
     public class LoggerManager : ILoggerManager
     {
-        private NLog.ILogger logger = LogManager.GetCurrentClassLogger();
+        private ILogger logger = LogManager.GetCurrentClassLogger();
         private string Caller = "";
 
-        public void SetCaller(string caller) 
+        public void SetCaller(string caller)
         {
             Caller = caller;
             logger = LogManager.GetLogger(Caller);

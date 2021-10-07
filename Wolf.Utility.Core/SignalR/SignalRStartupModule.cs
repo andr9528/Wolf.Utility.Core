@@ -8,13 +8,15 @@ namespace Wolf.Utility.Core.SignalR
 {
     public class SignalRStartupModule : IStartupModule
     {
-        public SetupRouteDelegate SetupRoute { get; }
-        public delegate void SetupRouteDelegate(HubRouteBuilder builder);
+        // TO BE FIXED ON A LATER DATE
 
-        public SignalRStartupModule(SetupRouteDelegate setup)
-        {
-            SetupRoute = setup ?? throw new ArgumentNullException(nameof(setup));
-        }
+        //public SetupRouteDelegate SetupRoute { get; }
+        //public delegate void SetupRouteDelegate(HubRouteBuilder builder);
+
+        //public SignalRStartupModule(SetupRouteDelegate setup)
+        //{
+        //    SetupRoute = setup ?? throw new ArgumentNullException(nameof(setup));
+        //}
 
         public void SetupServices(IServiceCollection services)
         {
@@ -23,7 +25,7 @@ namespace Wolf.Utility.Core.SignalR
 
         public void ConfigureApplication(IApplicationBuilder app)
         {
-            app.UseSignalR(route => SetupRoute?.Invoke(route));
+            //app.UseSignalR(route => SetupRoute?.Invoke(route));
         }
     }
 }
