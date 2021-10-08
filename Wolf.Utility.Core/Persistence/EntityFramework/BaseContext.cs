@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Wolf.Utility.Core.Persistence.Core;
 
 namespace Wolf.Utility.Core.Persistence.EntityFramework
@@ -11,9 +13,33 @@ namespace Wolf.Utility.Core.Persistence.EntityFramework
     {
         public override int SaveChanges()
         {
+            UpdateDatetimes();
+            return base.SaveChanges();
+        }
+
+        public override int SaveChanges(bool acceptAllChangesOnSuccess)
+        {
+            UpdateDatetimes();
+            return base.SaveChanges(acceptAllChangesOnSuccess);
+        }
+
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            UpdateDatetimes();
+            return base.SaveChangesAsync(cancellationToken);
+        }
+
+        public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+        {
+            UpdateDatetimes();
+            return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+        }
+
+        protected void UpdateDatetimes() 
+        {
             var entries = ChangeTracker.Entries().Where(e => e.Entity is IEntity && (
-                e.State == EntityState.Added
-                || e.State == EntityState.Modified));
+               e.State == EntityState.Added
+               || e.State == EntityState.Modified));
 
             foreach (var entityEntry in entries)
             {
@@ -24,8 +50,6 @@ namespace Wolf.Utility.Core.Persistence.EntityFramework
                     ((IEntity)entityEntry.Entity).CreatedDate = DateTime.Now;
                 }
             }
-
-            return base.SaveChanges();
         }
     }
 }
