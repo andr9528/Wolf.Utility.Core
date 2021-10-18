@@ -38,7 +38,7 @@ namespace Wolf.Utility.Core.Startup.Modules
         /// <param name="services"></param>
         public void SetupServices(IServiceCollection services)
         {
-            services.AddSingleton<ILoggerManager, LoggerManager>();
+            services.AddScoped<ILoggerManager, LoggerManager>();
 
             var config = new LoggingConfiguration();
             if (File)

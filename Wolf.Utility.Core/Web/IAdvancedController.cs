@@ -8,8 +8,8 @@ namespace Wolf.Utility.Core.Web
     public interface IAdvancedController<TEntity> where TEntity : IEntity
     {
         Task<ActionResult<IEnumerable<TEntity>>> Get(TEntity entity);
-        Task<IActionResult> Put(TEntity data);
-        Task<IActionResult> Post(TEntity data);
-        Task<IActionResult> Delete(TEntity data);
+        Task<ActionResult<TEntity>> Put(TEntity entity);
+        Task<ActionResult<TEntity>> Post(TEntity entity);
+        Task<IActionResult> Delete(TEntity entity);
     }
 }

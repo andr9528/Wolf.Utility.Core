@@ -6,6 +6,7 @@ using Wolf.Utility.Core.Exceptions;
 
 namespace Wolf.Utility.Core.EntityModules
 {
+    // Needs reworking into Dependency injection modules
     public abstract class BaseEntity
     {
         private List<IModule> modules;

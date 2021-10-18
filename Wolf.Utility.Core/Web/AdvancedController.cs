@@ -31,9 +31,9 @@ namespace Wolf.Utility.Core.Web
         }
 
         public abstract Task<ActionResult<IEnumerable<TEntity>>> Get(TEntity entity);
-        public abstract Task<IActionResult> Put(TEntity data);
-        public abstract Task<IActionResult> Post(TEntity data);
-        public abstract Task<IActionResult> Delete(TEntity data);
+        public abstract Task<ActionResult<TEntity>> Put(TEntity entity);
+        public abstract Task<ActionResult<TEntity>> Post(TEntity entity);
+        public abstract Task<IActionResult> Delete(TEntity entity);
 
         protected ObjectResult CreateReturnMessage(string message)
         {

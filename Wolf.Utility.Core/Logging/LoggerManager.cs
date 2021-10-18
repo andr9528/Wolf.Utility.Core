@@ -15,10 +15,11 @@ namespace Wolf.Utility.Core.Logging
 
         public void SetCaller(string caller)
         {
+            var temp = Caller;
             Caller = caller;
             logger = LogManager.GetLogger(Caller);
 
-            LogInfo($"Set Logger to be from {Caller}");
+            LogInfo($"Changing Logger to be from {Caller}; Was from {temp} Previously.");
         }
 
         public void LogDebug(string message)
