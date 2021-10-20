@@ -1,0 +1,337 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Wolf.Utility.Core</name>
+    </assembly>
+    <members>
+        <member name="M:Wolf.Utility.Core.Arduino.HeaderBuilder.Build(System.String)">
+            <summary>
+            Use a Stringbuilder to build the header filer. 
+            Start with a call to 'BuildCheck'. It ensures the savePath has the correct fileformat.
+            When doing the Stringbuilder, Start with adding the result from HEADER, and end with the result from FOOTER.
+            When done building the file, save it to the location specified in savePath. 
+            </summary>
+            <param name="savePath"></param>
+        </member>
+        <member name="M:Wolf.Utility.Core.Bases.BasePropertyChanged.SetProperty``1(``0@,``0,System.String,System.Action)">
+            <summary>
+            Changes the value of the backing store to the input of value, if they are different that is.
+            If changes happen, a PropertyChanged event is fired with the name of the property that changed.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="backingStore">a reference to the backing store of a property. i.e a reference to a field almost always.</param>
+            <param name="value">The value that backingStore is going to be set too, if they are different.</param>
+            <param name="propertyName">Name of the property that is being changed. Make use of nameof().</param>
+            <param name="onChanged">Any additional action to take when the PropertyChanged event is going to be fired.</param>
+            <returns>Returns False if the value in backingstore and value are equal, otherwise returns true after invoking PropertyChanged(s) events</returns>
+        </member>
+        <member name="M:Wolf.Utility.Core.Bases.BasePropertyChanged.OnPropertyChanged(System.String)">
+            <summary>
+            Causes a PropertyChanged event to be raised with the given <paramref name="propertyName"/>.
+            Is called from <see cref="M:Wolf.Utility.Core.Bases.BasePropertyChanged.SetProperty``1(``0@,``0,System.String,System.Action)"/>, which should be used in 99% of cases where this one should be called/>
+            </summary>
+            <param name="propertyName"></param>
+        </member>
+        <member name="M:Wolf.Utility.Core.EntityModules.BaseEntity.GetModule(Wolf.Utility.Core.EntityModules.Core.ModuleType)">
+            <summary>
+            Should be called from within a try-block, 
+            as an incorrect amount of modules (to few or many)
+            will cause an exception, stateing if too many or too few was found.
+            </summary>
+            <param name="type"> Module type to try and retrieve. 
+            Casting to the implementation of that module is guarenteed safe after call.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Wolf.Utility.Core.EntityModules.Modules.CopyModule.ToNew``1(``0,System.String[])">
+            <summary>
+            Uses Reflection to create and copy properties from the supplied object into a new instace, thereby creating a new reference.
+            </summary>
+            <typeparam name="T">The type to copy from and to</typeparam>
+            <param name="old">The old instance to copy from</param>
+            <param name="skippedProperties">The properties, by name, to skip when copying. If left empty every property will be copied</param>
+            <returns></returns>
+        </member>
+        <member name="M:Wolf.Utility.Core.EntityModules.Modules.CopyModule.ToOld``1(``0,``0,System.String[])">
+            <summary>
+            Uses Reflection to copy properties from the supplied fresh object into an old instance, thereby reusing a reference.
+            </summary>
+            <typeparam name="T">The type to copy from and to</typeparam>
+            <param name="old">The old instance to copy to</param>
+            <param name="fresh">The new instance to copy from</param>
+            <param name="skippedProperties">The properties, by name, to skip when copying. If left empty every property will be copied</param>
+            <returns></returns>
+        </member>
+        <member name="M:Wolf.Utility.Core.Extensions.Methods.CollectionExtensions.RemoveAtAndReturn``1(System.Collections.Generic.List{``0},System.Int32)">
+            <summary>
+            removes the element at the specified index and then returns the list worked on.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="list"></param>
+            <param name="index"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Wolf.Utility.Core.Extensions.Methods.HttpClientExtensions.GetStringViaPostAsync(System.Net.Http.HttpClient,System.String,System.Net.Http.HttpContent)">
+            <summary>
+            Ensures the call was successful, meaning it will crash, if it failed.
+            </summary>
+            <param name="httpClient"></param>
+            <param name="url"></param>
+            <param name="content"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Wolf.Utility.Core.Extensions.Methods.HttpClientExtensions.GetByQueryAsync``1(System.Net.Http.HttpClient,System.String,``0)">
+            <summary>
+            Creates a query request to the base address of the client, at the controller specified in the url input, with any 'ValueType's in the data given.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="httpClient"></param>
+            <param name="url"></param>
+            <param name="data"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Wolf.Utility.Core.Extensions.Methods.TypeExtensions.GetMethodInfo``1(System.String)">
+            <summary>
+            
+            </summary>
+            <typeparam name="T">The class that the method is contained within</typeparam>
+            <param name="methodName">Name of the method to retrieve MethodInfo of</param>
+            <returns>MethodInfo of the Method specifed by the methodName parameter</returns>
+            <exception cref="T:System.NullReferenceException">Thrown when no methods with the specified name is found</exception>
+            <exception cref="T:System.Reflection.AmbiguousMatchException">Thrown when more than one methods with the specified name is found</exception>
+        </member>
+        <member name="M:Wolf.Utility.Core.Factory.GenericFactory.CopyProperties``1(``0,``0,System.Boolean,System.Boolean,System.Boolean,System.String[])">
+            <summary>
+            If the 'toNewObject' is true, then values will be taken from the old one and put into the new one, and then returning the new one.
+            If it is false, then it does the opposite, taking from the new and putting into the old.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="newObject"></param>
+            <param name="oldObject"></param>
+            <param name="ignoreDefaults"></param>
+            <param name="skipSelectedProperties"></param>
+            <param name="toNewObject"></param>
+            <param name="skippedProperties"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Wolf.Utility.Core.Logging.ILoggerManager">
+            <summary>
+            https://code-maze.com/net-core-web-development-part3/
+            </summary>
+        </member>
+        <member name="T:Wolf.Utility.Core.Logging.LoggerManager">
+            <summary>
+            https://code-maze.com/net-core-web-development-part3/
+            </summary>
+        </member>
+        <member name="M:Wolf.Utility.Core.Logging.Logging.Log(Wolf.Utility.Core.Logging.Enum.LogType,System.String)">
+            <summary>
+            If an Exception is throw trying to Log, it will be returned to the caller, gracefully, meaning the application will not crash, just fail to log.
+             </summary>
+            <param name="type"></param>
+            <param name="message"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Wolf.Utility.Core.Logging.Logging.AppStart">
+            <summary>
+            If an Exception is throw trying to Log, it will be returned to the caller, gracefully, meaning the application will not crash, just fail to log.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Wolf.Utility.Core.Persistence.EntityFramework.BaseHandler`1.Find``1(``0)">
+            <summary>
+            Finds exactly one result matching the input predicate. If there are more or less, throws an exception.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="predicate">A version of the type to search for, with some of its properties set to search parameters</param>
+            <returns></returns>
+            <exception cref="T:Wolf.Utility.Core.Exceptions.IncorrectCountException`1">Thrown when there is less or more than 1 result found matching the predicate</exception>
+        </member>
+        <member name="M:Wolf.Utility.Core.Persistence.EntityFramework.BaseHandler`1.FindMultiple``1(``0)">
+            <summary>
+            Finds one ore more results matching the input predicate. If there are 0, throws an exception.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="predicate">A version of the type to search for, with some of its properties set to search parameters</param>
+            <returns></returns>
+            <exception cref="T:Wolf.Utility.Core.Exceptions.IncorrectCountException`1">Thrown when there is 0 results found matching the predicate</exception>
+        </member>
+        <member name="M:Wolf.Utility.Core.Persistence.EntityFramework.BaseHandler`1.UpdateAndRetrieve``1(``0)">
+            <summary>
+            Updates the inputed element in the database, and then retrieves and returns the updated version.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="element">The element to update in database, and retrieve updated version of.</param>
+            <returns></returns>
+            <exception cref="T:System.ArgumentException">Thrown when the inputed element's Id is 0</exception>
+            <exception cref="T:Wolf.Utility.Core.Exceptions.TaskFailedException">Thrown when it failes to changed the tracked state of the element to modified</exception>
+        </member>
+        <member name="M:Wolf.Utility.Core.Persistence.EntityFramework.BaseHandler`1.AddAndRetrieve``1(``0,System.Boolean)">
+            <summary>
+            Addes the inputed element to the database, and then retrieves and returns the added version.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="element">The element to add to the database, and retrieve the added version of.</param>
+            <param name="tryRetrieveFirst">Wheather or not to attempt to retrieve using the inputed element, before adding, and then retrieving. 
+            Lowers duplicate entities, in theory</param>
+            <returns></returns>
+            <exception cref="T:System.ArgumentException">Thrown when the inputed element's Id is not 0</exception>
+            <exception cref="T:Wolf.Utility.Core.Exceptions.TaskFailedException">Thrown when it failes to changed the tracked state of the element to added</exception>
+        </member>
+        <member name="M:Wolf.Utility.Core.Persistence.EntityFramework.BaseHandler`1.AddMultipleAndRetrieve``1(System.Collections.Generic.ICollection{``0},System.Boolean)">
+            <summary>
+            Adds a collection of elements to the database
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="elements">The elements to add to the database.</param>
+            <param name="tryRetrieveFirst">Wheather or not to attempt to retrieve using the inputed element, before adding, and then retrieving. 
+            Lowers duplicate entities, in theory</param>
+            <returns>An ICollection of the added elements, after they have been freshly retrieved from the database</returns>
+        </member>
+        <member name="M:Wolf.Utility.Core.Persistence.EntityFramework.BaseHandler`1.FindOneResult``1(System.Linq.IQueryable{``0})">
+            <summary>
+            Retrieves exactly one result, matching the query input. If there are more or less, throws an exception.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="query">The query to run, and retrieve Entities via</param>
+            <returns></returns>
+            <exception cref="T:Wolf.Utility.Core.Exceptions.IncorrectCountException`1">Thrown when there is less or more than 1 result found matching the query</exception>
+        </member>
+        <member name="M:Wolf.Utility.Core.Persistence.EntityFramework.BaseHandler`1.FindMultipleResults``1(System.Linq.IQueryable{``0})">
+            <summary>
+            Retrieves one or more results, matching the query input. If there are 0 results, throws an exception.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="query">The query to run, and retrieve Entities via</param>
+            <returns></returns>
+            <exception cref="T:Wolf.Utility.Core.Exceptions.IncorrectCountException`1">Thrown when there is 0 results found matching the query</exception>
+        </member>
+        <member name="M:Wolf.Utility.Core.Persistence.EntityFramework.Core.IHandler.Find``1(``0)">
+            <summary>
+            Finds exactly one result matching the input predicate. If there are more or less, throws an exception.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="predicate">A version of the type to search for, with some of its properties set to search parameters</param>
+            <returns></returns>
+            <exception cref="T:Wolf.Utility.Core.Exceptions.IncorrectCountException`1">Thrown when there is less or more than 1 result found matching the predicate</exception>
+        </member>
+        <member name="M:Wolf.Utility.Core.Persistence.EntityFramework.Core.IHandler.FindMultiple``1(``0)">
+            <summary>
+            Finds one ore more results matching the input predicate. If there are 0, throws an exception.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="predicate">A version of the type to search for, with some of its properties set to search parameters</param>
+            <returns></returns>
+            <exception cref="T:Wolf.Utility.Core.Exceptions.IncorrectCountException`1">Thrown when there is 0 results found matching the predicate</exception>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:Wolf.Utility.Core.Persistence.EntityFramework.Core.IHandler.UpdateAndRetrieve``1(``0)" -->
+        <!-- Badly formed XML comment ignored for member "M:Wolf.Utility.Core.Persistence.EntityFramework.Core.IHandler.AddAndRetrieve``1(``0,System.Boolean)" -->
+        <member name="M:Wolf.Utility.Core.Persistence.EntityFramework.Core.IHandler.AddMultipleAndRetrieve``1(System.Collections.Generic.ICollection{``0},System.Boolean)">
+            <summary>
+            Adds a collection of elements to the database
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="elements">The elements to add to the database.</param>
+            <param name="tryRetrieveFirst">Wheather or not to attempt to retrieve using the inputed element, before adding, and then retrieving. 
+            Lowers duplicate entities, in theory</param>
+            <returns>An ICollection of the added elements, after they have been freshly retrieved from the database</returns>
+        </member>
+        <member name="T:Wolf.Utility.Core.SignalR.HubProxy">
+            <summary>
+            Remember to call Init from the constructor.
+            </summary>
+        </member>
+        <member name="M:Wolf.Utility.Core.SignalR.HubProxy.InitSelf(System.String,System.String)">
+            <summary>
+            Initializer for a connection to a self-hosted SignalR hub
+            </summary>
+            <param name="baseAddress"></param>
+            <param name="hubName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Wolf.Utility.Core.SignalR.HubProxy.InitAzure(System.String,System.String,System.Boolean)">
+            <summary>
+            Initializer for a connection to an Azure hosted SignalR hub
+            </summary>
+            <param name="baseAddress"></param>
+            <param name="hubName"></param>
+            <param name="negotiateViaPost"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Wolf.Utility.Core.Startup.ModularStartup.#ctor(Microsoft.Extensions.Configuration.IConfiguration,Wolf.Utility.Core.Startup.IStartupModule[])">
+            <summary>
+            Remember to call 'SetupServices' during 'ConfigureServices' and 'ConfigureApplication' during 'Configure'!
+            Make use of the 'AddModule' method during the constructor of the Startup, to create and add necessary modules for the project.
+            </summary>
+            <param name="config"></param>
+            <param name="modules"></param>
+        </member>
+        <member name="M:Wolf.Utility.Core.Startup.ModularStartup.#ctor(Wolf.Utility.Core.Startup.IStartupModule[])">
+            <summary>
+            Expects a 'appsettings.json' file in the main directory.
+            Remember to call 'SetupServices' during 'ConfigureServices' and 'ConfigureApplication' during 'Configure'!
+            Make use of the 'AddModule' method during the constructor of the Startup, to create and add necessary modules for the project.
+            </summary>
+            <param name="modules"></param>
+        </member>
+        <member name="M:Wolf.Utility.Core.Startup.Modules.NLogStartupModule.#ctor(System.Boolean,System.Boolean)">
+            <summary>
+            Creates a Startup module that enables logging, using NLog
+            </summary>
+            <param name="console">Adds Console logging if true; Default true;</param>
+            <param name="file">Adds Logging to file, beside the .exe file; Default true;</param>
+        </member>
+        <member name="M:Wolf.Utility.Core.Startup.Modules.NLogStartupModule.SetupServices(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            https://code-maze.com/net-core-web-development-part3/
+            Used https://stackoverflow.com/questions/61553415/using-nlog-console-logging-together-in-net-core-console-app
+            </summary>
+            <param name="services"></param>
+        </member>
+        <member name="M:Wolf.Utility.Core.Transport.JsonManipulator.ReadValueViaPath``1(System.String,System.String)">
+            <summary>
+            Parses Json file, and returns the attribute specified by 'propertyName'.
+            </summary>
+            <typeparam name="T">The type returned, from the property named after the input 'propertyName'.</typeparam>
+            <param name="path">Path of the Json file.</param>
+            <param name="propertyName">Name of the property to return.</param>
+            <returns></returns>
+        </member>
+        <member name="M:Wolf.Utility.Core.Transport.JsonManipulator.ReadValueViaModelViaPath``2(System.String,System.String)">
+            <summary>
+            Deserializes Json file into specified model, and returns the property from it by the value specified in 'propertyName'.
+            </summary>
+            <typeparam name="T">The type returned, from the property named after the input 'propertyName'.</typeparam>
+            <typeparam name="U">The model that is deserialized into, and from which the property is taken and returned.</typeparam>
+            <param name="path">Path of the Json file.</param>
+            <param name="propertyName">Name of the property to return.</param>
+            <returns></returns>
+        </member>
+        <member name="T:Wolf.Utility.Core.Web.AdvancedController`1">
+            <summary>
+            For use with Api controllers, working with entity framework core. includes CRUD for the entity defined in TEntity.
+            </summary>
+            <typeparam name="TEntity">Entity that CRUD should be implemented for.</typeparam>
+        </member>
+        <member name="M:Wolf.Utility.Core.Web.ControllerProxy.#ctor(System.String,System.String,Wolf.Utility.Core.Persistence.EntityFramework.Core.IHandler)">
+            <summary>
+            For use with Web Api's
+            </summary>
+            <param name="baseAddress"></param>
+            <param name="controller"></param>
+            <param name="handler"></param>
+        </member>
+        <member name="M:Wolf.Utility.Core.Web.ControllerProxy.#ctor(System.String,System.String)">
+            <summary>
+            For use with Websites
+            </summary>
+            <param name="baseAddress"></param>
+            <param name="controller"></param>
+        </member>
+        <member name="T:Wolf.Utility.Core.Wpf.WpfStartupModule`1">
+            <summary>
+            Adds a Singleton for the TMainWindow supplied.
+            </summary>
+            <typeparam name="TMainWindow">Should be the Type of the MainWindow of the Wpf application</typeparam>
+        </member>
+    </members>
+</doc>

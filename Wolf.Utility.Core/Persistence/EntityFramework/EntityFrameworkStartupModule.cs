@@ -33,13 +33,9 @@ namespace Wolf.Utility.Core.Persistence.EntityFramework
         {
             if (migrateOnStartup)
             {
-                using (var service = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
-                {
-                    using (var context = service.ServiceProvider.GetService<TContext>())
-                    {
-                        context.Database.Migrate();
-                    }
-                } 
+                using var service = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
+                using var context = service.ServiceProvider.GetService<TContext>();
+                context.Database.Migrate();
             }
         }
     }

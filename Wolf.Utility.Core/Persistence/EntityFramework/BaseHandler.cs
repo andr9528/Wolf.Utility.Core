@@ -68,7 +68,7 @@ namespace Wolf.Utility.Core.Persistence.EntityFramework
         /// <param name="element">The element to update in database, and retrieve updated version of.</param>
         /// <returns></returns>
         /// <exception cref="System.ArgumentException">Thrown when the inputed element's Id is 0</exception>
-        /// <exception cref="Wolf.Utility.Core.Exceptions.TaskFailedException">Thrown when it failes to changed the tracked state of the element to modified>
+        /// <exception cref="Wolf.Utility.Core.Exceptions.TaskFailedException">Thrown when it failes to changed the tracked state of the element to modified</exception>
         public async Task<T> UpdateAndRetrieve<T>(T element) where T : class, IEntity 
         {
             if (element.Id == 0)
@@ -136,7 +136,7 @@ namespace Wolf.Utility.Core.Persistence.EntityFramework
         /// Lowers duplicate entities, in theory</param>
         /// <returns></returns>
         /// <exception cref="System.ArgumentException">Thrown when the inputed element's Id is not 0</exception>
-        /// <exception cref="Wolf.Utility.Core.Exceptions.TaskFailedException">Thrown when it failes to changed the tracked state of the element to added>
+        /// <exception cref="Wolf.Utility.Core.Exceptions.TaskFailedException">Thrown when it failes to changed the tracked state of the element to added</exception>
         public async Task<T> AddAndRetrieve<T>(T element, bool tryRetrieveFirst = true) where T : class, IEntity 
         {
             if (element.Id != 0)
@@ -231,9 +231,9 @@ namespace Wolf.Utility.Core.Persistence.EntityFramework
             lock (ContextLock)
             {
                 var result = query.ToList();
-                if (result.Count() == 1)
+                if (result.Count == 1)
                     return result.First();
-                if (result.Count() > 1)
+                if (result.Count > 1)
                     throw IncorrectEntityCountException<T>.Constructor(1, result.Count, true, result);
                 throw IncorrectEntityCountException<T>.Constructor(1, result.Count, elements: new List<T>()); 
             }

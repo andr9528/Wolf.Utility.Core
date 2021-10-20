@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -11,6 +12,17 @@ namespace Wolf.Utility.Core.Persistence.EntityFramework
 {
     public abstract class BaseContext : DbContext
     {
+        protected readonly DbContextOptions options;
+
+        protected BaseContext()
+        {
+        }
+
+        protected BaseContext([NotNullAttribute] DbContextOptions options) : base(options)
+        {
+            this.options = options;
+        }
+
         public override int SaveChanges()
         {
             UpdateDatetimes();
