@@ -10,6 +10,7 @@ using Wolf.Utility.Core.Persistence.Core;
 
 namespace Wolf.Utility.Core.Persistence.EntityFramework
 {
+    // https://docs.microsoft.com/en-us/ef/core/managing-schemas/migrations/?tabs=vs
     public abstract class BaseContext : DbContext
     {
         protected readonly DbContextOptions options;

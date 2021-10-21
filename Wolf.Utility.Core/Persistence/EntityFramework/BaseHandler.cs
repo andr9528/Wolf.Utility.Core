@@ -65,32 +65,32 @@ namespace Wolf.Utility.Core.Persistence.EntityFramework
         /// Updates the inputed element in the database, and then retrieves and returns the updated version.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="element">The element to update in database, and retrieve updated version of.</param>
+        /// <param name="entity">The element to update in database, and retrieve updated version of.</param>
         /// <returns></returns>
         /// <exception cref="System.ArgumentException">Thrown when the inputed element's Id is 0</exception>
         /// <exception cref="Wolf.Utility.Core.Exceptions.TaskFailedException">Thrown when it failes to changed the tracked state of the element to modified</exception>
-        public async Task<T> UpdateAndRetrieve<T>(T element) where T : class, IEntity 
+        public async Task<T> UpdateAndRetrieve<T>(T entity) where T : class, IEntity 
         {
-            if (element.Id == 0)
+            if (entity.Id == 0)
                 throw new ArgumentException($"I need an Id to figure out what to update", new ArgumentException("Id of predicate can not be 0"));
 
-            var result = await VirtualUpdate(element);
+            var result = await VirtualUpdate(entity);
             if (result == false)
                 throw new TaskFailedException(TypeExtensions.GetMethodInfo<BaseHandler<TContext>>(nameof(UpdateAndRetrieve)), 
-                    $"Task was suppose to update {nameof(element)} of type {typeof(T).FullName} in database, but failed to set state to modified");
+                    $"Task was suppose to update {nameof(entity)} of type {typeof(T).FullName} in database, but failed to set state to modified");
 
             await Save();
 
-            var updated = await Find(element);
+            var updated = await Find(entity);
             return updated;
         }
 
-        protected virtual async Task<bool> VirtualUpdate<T>(T element) where T : class, IEntity
+        protected virtual async Task<bool> VirtualUpdate<T>(T entity) where T : class, IEntity
         {
             EntityEntry entry = null;
             EntityState state = EntityState.Unchanged;
 
-            entry = Context.Update(element);
+            entry = Context.Update(entity);
 
             state = CheckEntryState(state, entry);
             return VerifyEntryState(state, EntityState.Modified);
@@ -98,26 +98,31 @@ namespace Wolf.Utility.Core.Persistence.EntityFramework
         #endregion
 
         #region Delete
-
-        public async Task<bool> Delete<T>(T element, bool autoSave = true) where T : class, IEntity
+        /// <summary>
+        /// Deletes an inputed entity fro mthe backing database.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="entity">The entity to delete from the database.</param>
+        /// <returns>True is it was deleted, otherwise false.</returns>
+        /// <exception cref="ArgumentException">Thrown if the Id of <paramref name="entity"/> is 0.</exception>
+        public async Task<bool> Delete<T>(T entity) where T : class, IEntity
         {
-            if (element.Id == 0)
-                throw new Exception($"I need an Id to figure out what to remove", new ArgumentException("Id of predicate can't be 0"));
+            if (entity.Id == 0)
+                throw new ArgumentException($"I need an Id to figure out what to remove", new ArgumentException("Id of predicate can't be 0"));
 
-            var result = await VirtualDelete(element);
-
-            if (autoSave)
-                await Save();
+            var result = await VirtualDelete(entity);
+            
+            await Save();
 
             return result;
         }
 
-        protected virtual async Task<bool> VirtualDelete<T>(T element) where T : class, IEntity
+        protected virtual async Task<bool> VirtualDelete<T>(T entity) where T : class, IEntity
         {
             EntityEntry entry = null;
             EntityState state = EntityState.Unchanged;
 
-            entry = Context.Remove(element);
+            entry = Context.Remove(entity);
 
             state = CheckEntryState(state, entry);
             return VerifyEntryState(state, EntityState.Deleted);
@@ -131,45 +136,45 @@ namespace Wolf.Utility.Core.Persistence.EntityFramework
         /// Addes the inputed element to the database, and then retrieves and returns the added version.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="element">The element to add to the database, and retrieve the added version of.</param>
+        /// <param name="entity">The element to add to the database, and retrieve the added version of.</param>
         /// <param name="tryRetrieveFirst">Wheather or not to attempt to retrieve using the inputed element, before adding, and then retrieving. 
         /// Lowers duplicate entities, in theory</param>
         /// <returns></returns>
         /// <exception cref="System.ArgumentException">Thrown when the inputed element's Id is not 0</exception>
         /// <exception cref="Wolf.Utility.Core.Exceptions.TaskFailedException">Thrown when it failes to changed the tracked state of the element to added</exception>
-        public async Task<T> AddAndRetrieve<T>(T element, bool tryRetrieveFirst = true) where T : class, IEntity 
+        public async Task<T> AddAndRetrieve<T>(T entity, bool tryRetrieveFirst = true) where T : class, IEntity 
         {
-            if (element.Id != 0)
+            if (entity.Id != 0)
                 throw new ArgumentException($"I need Id to be 0 to set it properly myself", new ArgumentException($"Id of predicate has to be 0"));
 
             if (tryRetrieveFirst) 
             {
                 try
                 {
-                    var retrieve = await Find(element);
+                    var retrieve = await Find(entity);
                     return retrieve;
                 }
                 catch (IncorrectCountException<T> ice)
                 {
-                    if (ice.ToMany) throw new Exception($"While attempting to retrive before adding, found more than one result matching {nameof(element)}", ice);
+                    if (ice.ToMany) throw new Exception($"While attempting to retrive before adding, found more than one result matching {nameof(entity)}", ice);
                 }
             }            
 
-            var result = await VirtualAdd(element);
+            var result = await VirtualAdd(entity);
             if (result == false)
                 throw new TaskFailedException(TypeExtensions.GetMethodInfo<BaseHandler<TContext>>(nameof(AddAndRetrieve)),
-                    $"Task was suppose to add {nameof(element)} of type {typeof(T).FullName} to database, but failed to set state to added");
+                    $"Task was suppose to add {nameof(entity)} of type {typeof(T).FullName} to database, but failed to set state to added");
 
-            var added = await Find(element);
+            var added = await Find(entity);
             return added;
         }
 
-        protected virtual async Task<bool> VirtualAdd<T>(T element) where T : class, IEntity
+        protected virtual async Task<bool> VirtualAdd<T>(T entity) where T : class, IEntity
         {
             EntityEntry entry = null;
             EntityState state = EntityState.Unchanged;
 
-            entry = Context.Add(element);
+            entry = Context.Add(entity);
 
             state = CheckEntryState(state, entry);
             return VerifyEntryState(state, EntityState.Added);
@@ -183,17 +188,17 @@ namespace Wolf.Utility.Core.Persistence.EntityFramework
         /// Adds a collection of elements to the database
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="elements">The elements to add to the database.</param>
+        /// <param name="entities">The elements to add to the database.</param>
         /// <param name="tryRetrieveFirst">Wheather or not to attempt to retrieve using the inputed element, before adding, and then retrieving. 
         /// Lowers duplicate entities, in theory</param>
         /// <returns>An ICollection of the added elements, after they have been freshly retrieved from the database</returns>
-        public async Task<ICollection<T>> AddMultipleAndRetrieve<T>(ICollection<T> elements, bool tryRetrieveFirst = true) where T : class, IEntity 
+        public async Task<ICollection<T>> AddMultipleAndRetrieve<T>(ICollection<T> entities, bool tryRetrieveFirst = true) where T : class, IEntity 
         {
             var results = new List<T>();
 
-            foreach (var element in elements)
+            foreach (var entity in entities)
             {
-                results.Add(await AddAndRetrieve(element, tryRetrieveFirst));
+                results.Add(await AddAndRetrieve(entity, tryRetrieveFirst));
             }
 
             return results;

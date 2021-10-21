@@ -160,17 +160,26 @@
             Updates the inputed element in the database, and then retrieves and returns the updated version.
             </summary>
             <typeparam name="T"></typeparam>
-            <param name="element">The element to update in database, and retrieve updated version of.</param>
+            <param name="entity">The element to update in database, and retrieve updated version of.</param>
             <returns></returns>
             <exception cref="T:System.ArgumentException">Thrown when the inputed element's Id is 0</exception>
             <exception cref="T:Wolf.Utility.Core.Exceptions.TaskFailedException">Thrown when it failes to changed the tracked state of the element to modified</exception>
+        </member>
+        <member name="M:Wolf.Utility.Core.Persistence.EntityFramework.BaseHandler`1.Delete``1(``0)">
+            <summary>
+            Deletes an inputed entity fro mthe backing database.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="entity">The entity to delete from the database.</param>
+            <returns>True is it was deleted, otherwise false.</returns>
+            <exception cref="T:System.ArgumentException">Thrown if the Id of <paramref name="entity"/> is 0.</exception>
         </member>
         <member name="M:Wolf.Utility.Core.Persistence.EntityFramework.BaseHandler`1.AddAndRetrieve``1(``0,System.Boolean)">
             <summary>
             Addes the inputed element to the database, and then retrieves and returns the added version.
             </summary>
             <typeparam name="T"></typeparam>
-            <param name="element">The element to add to the database, and retrieve the added version of.</param>
+            <param name="entity">The element to add to the database, and retrieve the added version of.</param>
             <param name="tryRetrieveFirst">Wheather or not to attempt to retrieve using the inputed element, before adding, and then retrieving. 
             Lowers duplicate entities, in theory</param>
             <returns></returns>
@@ -182,7 +191,7 @@
             Adds a collection of elements to the database
             </summary>
             <typeparam name="T"></typeparam>
-            <param name="elements">The elements to add to the database.</param>
+            <param name="entities">The elements to add to the database.</param>
             <param name="tryRetrieveFirst">Wheather or not to attempt to retrieve using the inputed element, before adding, and then retrieving. 
             Lowers duplicate entities, in theory</param>
             <returns>An ICollection of the added elements, after they have been freshly retrieved from the database</returns>
@@ -210,7 +219,7 @@
             Finds exactly one result matching the input predicate. If there are more or less, throws an exception.
             </summary>
             <typeparam name="T"></typeparam>
-            <param name="predicate">A version of the type to search for, with some of its properties set to search parameters</param>
+            <param name="entity">A version of the type to search for, with some of its properties set to search parameters</param>
             <returns></returns>
             <exception cref="T:Wolf.Utility.Core.Exceptions.IncorrectCountException`1">Thrown when there is less or more than 1 result found matching the predicate</exception>
         </member>
@@ -219,18 +228,27 @@
             Finds one ore more results matching the input predicate. If there are 0, throws an exception.
             </summary>
             <typeparam name="T"></typeparam>
-            <param name="predicate">A version of the type to search for, with some of its properties set to search parameters</param>
+            <param name="entity">A version of the type to search for, with some of its properties set to search parameters</param>
             <returns></returns>
             <exception cref="T:Wolf.Utility.Core.Exceptions.IncorrectCountException`1">Thrown when there is 0 results found matching the predicate</exception>
         </member>
         <!-- Badly formed XML comment ignored for member "M:Wolf.Utility.Core.Persistence.EntityFramework.Core.IHandler.UpdateAndRetrieve``1(``0)" -->
+        <member name="M:Wolf.Utility.Core.Persistence.EntityFramework.Core.IHandler.Delete``1(``0)">
+            <summary>
+            Deletes an inputed entity fro mthe backing database.
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="entity">The entity to delete from the database.</param>
+            <returns>True is it was deleted, otherwise false.</returns>
+            <exception cref="T:System.ArgumentException">Thrown if the Id of <paramref name="entity"/> is 0.</exception>
+        </member>
         <!-- Badly formed XML comment ignored for member "M:Wolf.Utility.Core.Persistence.EntityFramework.Core.IHandler.AddAndRetrieve``1(``0,System.Boolean)" -->
         <member name="M:Wolf.Utility.Core.Persistence.EntityFramework.Core.IHandler.AddMultipleAndRetrieve``1(System.Collections.Generic.ICollection{``0},System.Boolean)">
             <summary>
             Adds a collection of elements to the database
             </summary>
             <typeparam name="T"></typeparam>
-            <param name="elements">The elements to add to the database.</param>
+            <param name="entities">The elements to add to the database.</param>
             <param name="tryRetrieveFirst">Wheather or not to attempt to retrieve using the inputed element, before adding, and then retrieving. 
             Lowers duplicate entities, in theory</param>
             <returns>An ICollection of the added elements, after they have been freshly retrieved from the database</returns>
