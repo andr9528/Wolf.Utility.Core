@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.12" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="5.0.12" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Wolf.Utility.Core.Bases\Wolf.Utility.Core.Bases.csproj" />
+    <ProjectReference Include="..\Wolf.Utility.Core.Exceptions\Wolf.Utility.Core.Exceptions.csproj" />
+    <ProjectReference Include="..\Wolf.Utility.Core.Extensions\Wolf.Utility.Core.Extensions.csproj" />
+    <ProjectReference Include="..\Wolf.Utility.Core.Startup\Wolf.Utility.Core.Startup.csproj" />
+  </ItemGroup>
+
+</Project>
