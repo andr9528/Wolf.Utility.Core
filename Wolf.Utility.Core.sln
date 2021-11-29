@@ -27,6 +27,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wolf.Utility.Core.Web", "Wo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wolf.Utility.Core.Wpf", "Wolf.Utility.Core.Wpf\Wolf.Utility.Core.Wpf.csproj", "{44687A0D-74C8-4F3C-9750-989DDE045B70}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wolf.Utility.Core.Xamarin", "Wolf.Utility.Core.Xamarin\Wolf.Utility.Core.Xamarin.csproj", "{98CA0424-278A-40C0-876B-4D42218019C3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -81,6 +83,10 @@ Global
 		{44687A0D-74C8-4F3C-9750-989DDE045B70}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{44687A0D-74C8-4F3C-9750-989DDE045B70}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{44687A0D-74C8-4F3C-9750-989DDE045B70}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98CA0424-278A-40C0-876B-4D42218019C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98CA0424-278A-40C0-876B-4D42218019C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98CA0424-278A-40C0-876B-4D42218019C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98CA0424-278A-40C0-876B-4D42218019C3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 
 using Wolf.Utility.Core.Deprecated.Logging.Enum;
 
-namespace Wolf.Utility.Core.Logging
+namespace Wolf.Utility.Core.Deprecated.Logging
 {
     [Obsolete("Use NLog Startup Module instead, as it makes use of ILogger.")]
     public class Logging
@@ -17,7 +17,7 @@ namespace Wolf.Utility.Core.Logging
         public static void Init(string path, DateTime dateOfBirth, int maxAge = 7, bool shouldLog = true)
         {
             if (string.IsNullOrEmpty(path)) throw new ArgumentException("Value cannot be null or empty.", nameof(path));
-            
+
             if (string.IsNullOrEmpty(_path))
             {
                 _path = path;

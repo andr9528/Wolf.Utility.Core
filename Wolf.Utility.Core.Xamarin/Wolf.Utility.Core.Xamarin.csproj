@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Ooui" Version="0.14.16" />
+    <PackageReference Include="Ooui.AspNetCore" Version="0.14.16" />
+    <PackageReference Include="Rg.Plugins.Popup" Version="2.0.0.14" />
+    <PackageReference Include="Ultz.XNFC" Version="1.1.0" />
+    <PackageReference Include="Xamarin.Forms" Version="5.0.0.2244" />
+    <PackageReference Include="XLabs.Forms" Version="2.0.5782" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Wolf.Utility.Core.Deprecated\Wolf.Utility.Core.Deprecated.csproj" />
+    <ProjectReference Include="..\Wolf.Utility.Core.Startup\Wolf.Utility.Core.Startup.csproj" />
+  </ItemGroup>
+
+</Project>
