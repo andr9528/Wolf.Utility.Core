@@ -83,6 +83,26 @@ namespace Wolf.Utility.Core.Wpf.Controls.Resources {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        public static byte[] arrowright {
+            get {
+                object obj = ResourceManager.GetObject("arrowright", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        public static byte[] burgerIcon {
+            get {
+                object obj = ResourceManager.GetObject("burgerIcon", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         public static byte[] hidepasswordicon {
             get {
                 object obj = ResourceManager.GetObject("hidepasswordicon", resourceCulture);

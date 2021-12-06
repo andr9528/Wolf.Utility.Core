@@ -134,7 +134,7 @@ namespace Wolf.Utility.Core.Wpf.Controls
             switch (collapsed)
             {
                 case false:
-                    buttonImage.Source = ByteImageConverter.ByteToImage(Icons.arrowopen);
+                    buttonImage.Source = ImageConverter.ByteToImageSource(Icons.arrowopen);
                     hideable.Visibility = Visibility.Visible;
 
                     collapseButton.Visibility = Visibility.Visible;
@@ -142,7 +142,7 @@ namespace Wolf.Utility.Core.Wpf.Controls
                     break;
 
                 case true:
-                    buttonImage.Source = ByteImageConverter.ByteToImage(Icons.arrowclosed);
+                    buttonImage.Source = ImageConverter.ByteToImageSource(Icons.arrowclosed);
                     hideable.Visibility = Visibility.Collapsed;
 
                     collapseButton.Visibility = Visibility.Collapsed;
