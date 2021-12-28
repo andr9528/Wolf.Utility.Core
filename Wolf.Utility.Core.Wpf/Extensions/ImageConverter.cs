@@ -25,4 +25,5 @@ namespace Wolf.Utility.Core.Wpf.Extensions
 
             return imgSrc;
         }
+    }
 }

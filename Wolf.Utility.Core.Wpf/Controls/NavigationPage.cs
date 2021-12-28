@@ -15,11 +15,11 @@ using Xceed.Wpf.Toolkit;
 
 namespace Wolf.Utility.Core.Wpf.Controls
 {
-    public class NavigationWindow : Window
+    public class NavigationPage : Page
     {
-        private readonly IEnumerable<NavigationInfo> navigations;
-        private readonly IEnumerable<NavigationInfo> orderedNavigations;
-        private readonly NavigationLocation location;
+        private IEnumerable<NavigationInfo>? navigations;
+        private IEnumerable<NavigationInfo>? orderedNavigations;
+        private NavigationLocation location;
         private bool compacted = true;
 
         private Grid mainGrid = new Grid();
@@ -27,9 +27,14 @@ namespace Wolf.Utility.Core.Wpf.Controls
         private Grid hideableGrid = new Grid();
         private Frame pageViewer = new Frame();
         private IconButton burger = new IconButton();
-        private IconButton hide = new IconButton();
+        private IconButton back = new IconButton();
+
+        private Stack<NavigationInfo> History = new Stack<NavigationInfo>();
+        public Stack<NavigationInfo> GetHistory => History;
 
         public enum NavigationLocation { Null, Top, Right, Bottom, Left}
+
+
         /// <summary>
         /// 
         /// </summary>
@@ -37,7 +42,7 @@ namespace Wolf.Utility.Core.Wpf.Controls
         /// Top/Bottom doesn't support expanded version, and instead toggles between showing/hideing icons</param>
         /// <param name="compacted"></param>
         /// <exception cref="NullReferenceException"></exception>
-        public NavigationWindow(IEnumerable<NavigationInfo> navigations, NavigationLocation location = NavigationLocation.Left, bool compacted = true)
+        public NavigationPage(IEnumerable<NavigationInfo> navigations, NavigationLocation location = NavigationLocation.Left, bool compacted = true) : base()
         {
             if (location == NavigationLocation.Null)
                 throw new NullReferenceException($"{nameof(location)} was set to null location which is invalid.");
@@ -58,8 +63,9 @@ namespace Wolf.Utility.Core.Wpf.Controls
         {          
             SetupControls();
             SetControlPositions();
-        }       
+        }
 
+        #region Initialize Elements
         private void SetupControls()
         {
             InitializeMainGrid();
@@ -84,37 +90,41 @@ namespace Wolf.Utility.Core.Wpf.Controls
             };
             burger.Click += Burger_Click;
 
-            hide = new IconButton()
+            back = new IconButton()
             {
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 VerticalAlignment = VerticalAlignment.Stretch,
                 Icon = new Image()
                 {
-                    Source = ImageConverter.ByteToImageSource(Icons.showpasswordicon)
+                    Source = ImageConverter.ByteToImageSource(Icons.arrowleft)
                 }
             };
-            hide.Click += Hide_Click;
-
+            back.Click += Back_Click; ;
         }
 
-        private void Hide_Click(object sender, RoutedEventArgs e)
+        private void Back_Click(object sender, RoutedEventArgs e)
         {
-            hideableGrid.Visibility = hideableGrid.Visibility == Visibility.Visible ? Visibility.Hidden : Visibility.Visible;
+            if (History.Count > 1) 
+            {
+                History.Pop();
+                SetPageInFrame(History.Peek());
+            }
         }
 
         private void Burger_Click(object sender, RoutedEventArgs e)
         {
             compacted = !compacted;
 
-            ResetupGrids();
-        }
+            burger.Icon = new Image()
+            {
+                Source = ImageConverter.ByteToImageSource(compacted ? Icons.burgerIcon : Icons.arrowopen)
+            };
 
-        private void ResetupGrids() 
-        {
-            SetupMainGridFromLocation();
-            SetupNavigationGridFromLocation();
-            SetupHideableGridFromLocation();
+            hideableGrid.Visibility = hideableGrid.Visibility == Visibility.Visible ? Visibility.Hidden : Visibility.Visible;
         }
+        #endregion
+
+        #region Position Elements
 
         private void SetControlPositions()
         {
@@ -140,13 +150,81 @@ namespace Wolf.Utility.Core.Wpf.Controls
 
         private void PlaceHorizontally()
         {
-            throw new NotImplementedException();
+            var orderedArray = orderedNavigations.ToArray();
+            for (int i = 1; i <= orderedNavigations.Count(); i++)
+            {
+                var nav = orderedArray[i-1];
+                var button = CreateNavigationButton(nav);
+
+                Grid.SetColumn(button, i);
+                hideableGrid.Children.Add(button);
+            }
+
+            Grid.SetColumn(back, 1);
+            navigationGrid.Children.Add(back);
+
+            Grid.SetColumn(hideableGrid, 2);
+            navigationGrid.Children.Add(hideableGrid);
+
+            Grid.SetRow(navigationGrid, 1);
+            mainGrid.Children.Add(navigationGrid);
+
+            Grid.SetRow(pageViewer, 2);
+            mainGrid.Children.Add(pageViewer);
         }
 
         private void PlaceVertically()
         {
-            throw new NotImplementedException();
+            var orderedArray = orderedNavigations.ToArray();
+            for (int i = 1; i <= orderedNavigations.Count(); i++)
+            {
+                var nav = orderedArray[i - 1];
+                var button = CreateNavigationButton(nav);
+
+                Grid.SetRow(button, i);
+                hideableGrid.Children.Add(button);
+            }
+
+            Grid.SetRow(burger, 1);
+            navigationGrid.Children.Add(burger);
+
+            Grid.SetRow(back, 2);
+            navigationGrid.Children.Add(back);
+
+            Grid.SetRow(hideableGrid, 3);
+            navigationGrid.Children.Add(hideableGrid);
+
+            Grid.SetColumn(navigationGrid, 1);
+            mainGrid.Children.Add(navigationGrid);
+
+            Grid.SetColumn(pageViewer, 2);
+            mainGrid.Children.Add(pageViewer);
         }
+
+        private IconButton CreateNavigationButton(NavigationInfo info) 
+        {
+            var button = new IconButton()
+            {
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                Content = info.Title
+            };
+            if (info.HasIcon) button.Icon = new Image() { Source = info.Icon };
+            button.Click += (s, e) =>
+            {
+                History.Push(info);
+                SetPageInFrame(info);
+            };
+
+            return button;
+        }
+
+        private void SetPageInFrame(NavigationInfo info) 
+        {
+            pageViewer.Content = info.Content;
+        }
+
+        #endregion
 
         #region Main Grid Setup
         private void InitializeMainGrid()
