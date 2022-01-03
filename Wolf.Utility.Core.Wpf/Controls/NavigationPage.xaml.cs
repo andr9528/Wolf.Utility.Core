@@ -5,22 +5,36 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Navigation;
+using System.Windows.Shapes;
 
 using Wolf.Utility.Core.Exceptions;
+using Wolf.Utility.Core.Logging;
+using Wolf.Utility.Core.Wpf.Controls.Enums;
 using Wolf.Utility.Core.Wpf.Controls.Model;
 using Wolf.Utility.Core.Wpf.Controls.Resources;
+
 using Wolf.Utility.Core.Wpf.Extensions;
 
 using Xceed.Wpf.Toolkit;
 
 namespace Wolf.Utility.Core.Wpf.Controls
 {
-    public class NavigationPage : Page
+    /// <summary>
+    /// Interaction logic for NavigationPage.xaml
+    /// </summary>
+    public partial class NavigationPage : Page
     {
-        private IEnumerable<NavigationInfo>? navigations;
-        private IEnumerable<NavigationInfo>? orderedNavigations;
+        private IEnumerable<NavigationInfo>? navigations = new List<NavigationInfo>();
+        private IEnumerable<NavigationInfo>? orderedNavigations = new List<NavigationInfo>();
+        private readonly ILoggerManager? logger;
         private NavigationLocation location;
-        private bool compacted = true;
+        private bool hidden = true;
 
         private Grid mainGrid = new Grid();
         private Grid navigationGrid = new Grid();
@@ -32,57 +46,70 @@ namespace Wolf.Utility.Core.Wpf.Controls
         private Stack<NavigationInfo> History = new Stack<NavigationInfo>();
         public Stack<NavigationInfo> GetHistory => History;
 
-        public enum NavigationLocation { Null, Top, Right, Bottom, Left}
-
+        
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="location">Where the navigation bar is located. 
-        /// Top/Bottom doesn't support expanded version, and instead toggles between showing/hideing icons</param>
-        /// <param name="compacted"></param>
+        /// <param name="navigations">A List or similar containing NavigationInfo's used to setup navigation to different pages.</param>
+        /// <param name="location">Where the navigation bar is located.</param>
+        /// <param name="hidden">Wheather or not to start with the menu shown or not.</param>
+        /// <param name="logger">The logger used to log during setup and when event happen. If non is supplied no logging happens.</param>
         /// <exception cref="NullReferenceException"></exception>
-        public NavigationPage(IEnumerable<NavigationInfo> navigations, NavigationLocation location = NavigationLocation.Left, bool compacted = true) : base()
+        public NavigationPage(IEnumerable<NavigationInfo> navigations,
+                              ILoggerManager? logger = default,
+                              NavigationLocation location = NavigationLocation.Left,
+                              bool hidden = true) : base()
         {
+            InitializeComponent();
+
             if (location == NavigationLocation.Null)
                 throw new NullReferenceException($"{nameof(location)} was set to null location which is invalid.");
-            this.navigations = navigations;
+            this.navigations = navigations ?? throw new ArgumentNullException(nameof(navigations));
+            this.logger = logger;
             this.location = location;
+            this.hidden = hidden;
 
-            if (location == NavigationLocation.Top || location == NavigationLocation.Bottom)
-                compacted = true;
+            this.logger?.SetCaller(nameof(NavigationPage));
 
-            this.compacted = compacted;
+            mainGrid = MainGrid;
 
             orderedNavigations = navigations.OrderBy(x => x.Desired);
 
             BuildWindow();
         }
-
         private void BuildWindow()
-        {          
+        {
+            logger?.LogInfo($"Started buildind {nameof(NavigationPage)}.");
             SetupControls();
             SetControlPositions();
+            logger?.LogInfo($"Finished building {nameof(NavigationPage)}.");
         }
 
         #region Initialize Elements
         private void SetupControls()
         {
+            logger?.LogInfo($"Initializing Main Grid...");
             InitializeMainGrid();
+
+            logger?.LogInfo($"Initializing Navigation Grid...");
             InitializeNavigationGrid();
+
+            logger?.LogInfo($"Initializing Hideable Grid...");
             InitializeHideableGrid();
 
             pageViewer = new Frame()
             {
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 VerticalAlignment = VerticalAlignment.Stretch,
-                Content = orderedNavigations.ToList().First().Content
+                Content = orderedNavigations.ToList().First().Content               
             };
+            pageViewer.Background = Brushes.Red;
 
             burger = new IconButton()
             {
                 HorizontalAlignment = HorizontalAlignment.Stretch,
-                VerticalAlignment = VerticalAlignment.Stretch,
+                VerticalAlignment = VerticalAlignment.Center,
                 Icon = new Image()
                 {
                     Source = ImageConverter.ByteToImageSource(Icons.burgerIcon)
@@ -93,7 +120,7 @@ namespace Wolf.Utility.Core.Wpf.Controls
             back = new IconButton()
             {
                 HorizontalAlignment = HorizontalAlignment.Stretch,
-                VerticalAlignment = VerticalAlignment.Stretch,
+                VerticalAlignment = VerticalAlignment.Center,
                 Icon = new Image()
                 {
                     Source = ImageConverter.ByteToImageSource(Icons.arrowleft)
@@ -104,20 +131,20 @@ namespace Wolf.Utility.Core.Wpf.Controls
 
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            if (History.Count > 1) 
-            {
-                History.Pop();
-                SetPageInFrame(History.Peek());
-            }
+            if (History.Count > 1) History.Pop();
+            var last = History.Peek();
+            if (last.Content.Equals(pageViewer.Content)) return;
+            logger?.LogInfo($"Returning to '{last.Title}'.");
+            SetPageInFrame(last);            
         }
 
         private void Burger_Click(object sender, RoutedEventArgs e)
         {
-            compacted = !compacted;
+            hidden = !hidden;
 
             burger.Icon = new Image()
             {
-                Source = ImageConverter.ByteToImageSource(compacted ? Icons.burgerIcon : Icons.arrowopen)
+                Source = ImageConverter.ByteToImageSource(hidden ? Icons.burgerIcon : Icons.arrowopen)
             };
 
             hideableGrid.Visibility = hideableGrid.Visibility == Visibility.Visible ? Visibility.Hidden : Visibility.Visible;
@@ -131,34 +158,42 @@ namespace Wolf.Utility.Core.Wpf.Controls
             switch (location)
             {
                 case NavigationLocation.Top:
-                    PlaceHorizontally();
+                    PlaceHorizontally(true);
                     break;
                 case NavigationLocation.Right:
-                    PlaceVertically();
+                    PlaceVertically(false);
                     break;
                 case NavigationLocation.Bottom:
-                    PlaceHorizontally();
+                    PlaceHorizontally(false);
                     break;
                 case NavigationLocation.Left:
-                    PlaceVertically();
+                    PlaceVertically(true);
                     break;
                 default:
                     throw new ImpossibleException($"Code reached default section of switch in {nameof(SetControlPositions)}. " +
                         $"This should be Impossible, as no more than the listed cases should ever be able to exists");
             }
-        }              
+        }
 
-        private void PlaceHorizontally()
+        private void PlaceHorizontally(bool isTopPositioned)
         {
             var orderedArray = orderedNavigations.ToArray();
-            for (int i = 1; i <= orderedNavigations.Count(); i++)
+            for (int i = 0; i < orderedNavigations.Count(); i++)
             {
-                var nav = orderedArray[i-1];
+                var nav = orderedArray[i];
                 var button = CreateNavigationButton(nav);
 
                 Grid.SetColumn(button, i);
                 hideableGrid.Children.Add(button);
             }
+
+            var first = orderedArray.First();
+            logger?.LogInfo($"Setting the first shown page to '{first.Title}'");
+            History.Push(first);
+            SetPageInFrame(first);
+
+            Grid.SetColumn(burger, 0);
+            navigationGrid.Children.Add(burger);
 
             Grid.SetColumn(back, 1);
             navigationGrid.Children.Add(back);
@@ -166,60 +201,90 @@ namespace Wolf.Utility.Core.Wpf.Controls
             Grid.SetColumn(hideableGrid, 2);
             navigationGrid.Children.Add(hideableGrid);
 
-            Grid.SetRow(navigationGrid, 1);
-            mainGrid.Children.Add(navigationGrid);
+            if(isTopPositioned)
+            {
+                Grid.SetRow(navigationGrid, 0);
+                mainGrid.Children.Add(navigationGrid);
 
-            Grid.SetRow(pageViewer, 2);
-            mainGrid.Children.Add(pageViewer);
+                Grid.SetRow(pageViewer, 1);
+                mainGrid.Children.Add(pageViewer);
+            }
+            else
+            {
+                Grid.SetRow(pageViewer, 0);
+                mainGrid.Children.Add(pageViewer);
+
+                Grid.SetRow(navigationGrid, 1);
+                mainGrid.Children.Add(navigationGrid);
+            }
         }
 
-        private void PlaceVertically()
+        private void PlaceVertically(bool isLeftPositioned)
         {
             var orderedArray = orderedNavigations.ToArray();
-            for (int i = 1; i <= orderedNavigations.Count(); i++)
+            for (int i = 0; i < orderedNavigations.Count(); i++)
             {
-                var nav = orderedArray[i - 1];
+                var nav = orderedArray[i];
                 var button = CreateNavigationButton(nav);
 
                 Grid.SetRow(button, i);
                 hideableGrid.Children.Add(button);
             }
 
-            Grid.SetRow(burger, 1);
+            var first = orderedArray.First();
+            logger?.LogInfo($"Setting the first shown page to '{first.Title}'");
+            History.Push(first);
+            SetPageInFrame(first);
+
+            Grid.SetRow(burger, 0);
             navigationGrid.Children.Add(burger);
 
-            Grid.SetRow(back, 2);
+            Grid.SetRow(back, 1);
             navigationGrid.Children.Add(back);
 
-            Grid.SetRow(hideableGrid, 3);
+            Grid.SetRow(hideableGrid, 2);
             navigationGrid.Children.Add(hideableGrid);
 
-            Grid.SetColumn(navigationGrid, 1);
-            mainGrid.Children.Add(navigationGrid);
+            if (isLeftPositioned) 
+            {
+                Grid.SetColumn(navigationGrid, 0);
+                mainGrid.Children.Add(navigationGrid);
 
-            Grid.SetColumn(pageViewer, 2);
-            mainGrid.Children.Add(pageViewer);
+                Grid.SetColumn(pageViewer, 1);
+                mainGrid.Children.Add(pageViewer);
+            }
+            else
+            {
+                Grid.SetColumn(pageViewer, 0);
+                mainGrid.Children.Add(pageViewer);
+
+                Grid.SetColumn(navigationGrid, 1);
+                mainGrid.Children.Add(navigationGrid);
+            }
+
+            
         }
 
-        private IconButton CreateNavigationButton(NavigationInfo info) 
+        private IconButton CreateNavigationButton(NavigationInfo info)
         {
             var button = new IconButton()
             {
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                VerticalAlignment = VerticalAlignment.Stretch,
                 Content = info.Title
             };
             if (info.HasIcon) button.Icon = new Image() { Source = info.Icon };
             button.Click += (s, e) =>
             {
                 History.Push(info);
+                logger?.LogInfo($"Moving on to '{info.Title}'.");
                 SetPageInFrame(info);
             };
 
             return button;
         }
 
-        private void SetPageInFrame(NavigationInfo info) 
+        private void SetPageInFrame(NavigationInfo info)
         {
             pageViewer.Content = info.Content;
         }
@@ -229,11 +294,11 @@ namespace Wolf.Utility.Core.Wpf.Controls
         #region Main Grid Setup
         private void InitializeMainGrid()
         {
-            mainGrid = new Grid()
-            {
-                HorizontalAlignment = HorizontalAlignment.Stretch,
-                VerticalAlignment = VerticalAlignment.Center,
-            };
+            //mainGrid = new Grid()
+            //{
+            //    HorizontalAlignment = HorizontalAlignment.Stretch,
+            //    VerticalAlignment = VerticalAlignment.Stretch,
+            //};
 
             SetupMainGridFromLocation();
         }
@@ -263,26 +328,26 @@ namespace Wolf.Utility.Core.Wpf.Controls
             switch (isLeftNavigation)
             {
                 case true:
-                    switch (compacted)
+                    switch (hidden)
                     {
                         case false:
-                            SetupMainGrid(true, 15, 85);                           
+                            CreateRowsOrColumnForMainGrid(false, 15, 85);
                             break;
                         case true:
-                            SetupMainGrid(true, 5, 95);
+                            CreateRowsOrColumnForMainGrid(false, 5, 95);
                             break;
-                    }                    
+                    }
                     break;
                 case false:
-                    switch (compacted)
+                    switch (hidden)
                     {
                         case false:
-                            SetupMainGrid(true, 85, 15);
+                            CreateRowsOrColumnForMainGrid(false, 85, 15);
                             break;
                         case true:
-                            SetupMainGrid(true, 95, 5);
+                            CreateRowsOrColumnForMainGrid(false, 95, 5);
                             break;
-                    }                    
+                    }
                     break;
                 default:
                     throw new ImpossibleException($"Code reached default section of switch in {nameof(SetupVerticalMainGrid)}. " +
@@ -294,21 +359,21 @@ namespace Wolf.Utility.Core.Wpf.Controls
             switch (isBottomNavigation)
             {
                 case true:
-                    SetupMainGrid(false, 95, 5);
+                    CreateRowsOrColumnForMainGrid(true, 95, 5);
                     break;
                 case false:
-                    SetupMainGrid(false, 5, 95);
+                    CreateRowsOrColumnForMainGrid(true, 5, 95);
                     break;
                 default:
                     throw new ImpossibleException($"Code reached default section of switch in {nameof(SetupHorizontalMainGrid)}. " +
                         $"This should be Impossible, as no more than the listed cases should ever be able to exists"); ;
             }
         }
-        private void SetupMainGrid(bool isVertical, int sizeOne, int sizeTwo)
+        private void CreateRowsOrColumnForMainGrid(bool createRows, int sizeOne, int sizeTwo)
         {
-            ClearDefinitions(isVertical, mainGrid);
+            ClearDefinitions(createRows, mainGrid);
 
-            switch (isVertical)
+            switch (createRows)
             {
                 case true:
                     mainGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(sizeOne, GridUnitType.Star) });
@@ -328,7 +393,7 @@ namespace Wolf.Utility.Core.Wpf.Controls
             navigationGrid = new Grid()
             {
                 HorizontalAlignment = HorizontalAlignment.Stretch,
-                VerticalAlignment = VerticalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Stretch,
             };
 
             SetupNavigationGridFromLocation();
@@ -338,73 +403,35 @@ namespace Wolf.Utility.Core.Wpf.Controls
             switch (location)
             {
                 case NavigationLocation.Top:
-                    SetupHorizontalNavigationGrid(false);
+                    SetupNavigationGridFromPosition(isTopOrBottomNavigation: true);
                     break;
                 case NavigationLocation.Right:
-                    SetupVerticalNavigationGrid(false);
+                    SetupNavigationGridFromPosition(isLeftNavigation: false);
                     break;
                 case NavigationLocation.Bottom:
-                    SetupHorizontalNavigationGrid(true);
+                    SetupNavigationGridFromPosition(isTopOrBottomNavigation: true);
                     break;
                 case NavigationLocation.Left:
-                    SetupVerticalNavigationGrid(true);
+                    SetupNavigationGridFromPosition(isLeftNavigation: true);
                     break;
                 default:
                     throw new ImpossibleException($"Code reached default section of switch in {nameof(SetupNavigationGridFromLocation)}. " +
                         $"This should be Impossible, as no more than the listed cases should ever be able to exists");
             }
         }
-        private void SetupVerticalNavigationGrid(bool isLeftNavigation)
-        {
-            switch (isLeftNavigation)
-            {
-                case true:
-                    switch (compacted)
-                    {
-                        case false:
-                            SetupNavigationGrid(true, 15, 85);
-                            break;
-                        case true:
-                            SetupNavigationGrid(true, 5, 95);
-                            break;
-                    }
-                    break;
-                case false:
-                    switch (compacted)
-                    {
-                        case false:
-                            SetupNavigationGrid(true, 85, 15);
-                            break;
-                        case true:
-                            SetupNavigationGrid(true, 95, 5);
-                            break;
-                    }
-                    break;
-                default:
-                    throw new ImpossibleException($"Code reached default section of switch in {nameof(SetupVerticalNavigationGrid)}. " +
-                        $"This should be Impossible, as no more than the listed cases should ever be able to exists"); ;
-            }
-        }
-        private void SetupHorizontalNavigationGrid(bool isBottomNavigation)
-        {
-            switch (isBottomNavigation)
-            {
-                case true:
-                    SetupNavigationGrid(false, 95, 5);
-                    break;
-                case false:
-                    SetupNavigationGrid(false, 5, 95);
-                    break;
-                default:
-                    throw new ImpossibleException($"Code reached default section of switch in {nameof(SetupHorizontalNavigationGrid)}. " +
-                        $"This should be Impossible, as no more than the listed cases should ever be able to exists"); ;
-            }
-        }
-        private void SetupNavigationGrid(bool isVertical, int sizeOne, int sizeTwo)
-        {
-            ClearDefinitions(isVertical, navigationGrid);
 
-            switch (isVertical)
+        private void SetupNavigationGridFromPosition(bool isTopOrBottomNavigation = false, bool isLeftNavigation = false) 
+        {
+            if (isTopOrBottomNavigation) CreateRowsOrColumnForNavigationGrid(false, 5, 95);
+            else if (isLeftNavigation) CreateRowsOrColumnForNavigationGrid(true, 5, 95);              
+            else CreateRowsOrColumnForNavigationGrid(true, 95, 5);
+            
+        }
+        private void CreateRowsOrColumnForNavigationGrid(bool createRows, int sizeOne, int sizeTwo)
+        {
+            ClearDefinitions(createRows, navigationGrid);
+
+            switch (createRows)
             {
                 case true:
                     navigationGrid.RowDefinitions.Add(new RowDefinition() { Height = new GridLength(sizeOne, GridUnitType.Star) });
@@ -413,20 +440,22 @@ namespace Wolf.Utility.Core.Wpf.Controls
                     break;
                 case false:
                     navigationGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(sizeOne, GridUnitType.Star) });
+                    navigationGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(sizeOne, GridUnitType.Star) });
                     navigationGrid.ColumnDefinitions.Add(new ColumnDefinition() { Width = new GridLength(sizeTwo, GridUnitType.Star) });
                     break;
             }
         }
         #endregion
 
-        #region Setup Hideable Grid
+        #region Hideable Grid Setup
         private void InitializeHideableGrid()
         {
             hideableGrid = new Grid()
             {
                 HorizontalAlignment = HorizontalAlignment.Stretch,
-                VerticalAlignment = VerticalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Stretch,
             };
+            hideableGrid.Visibility = hideableGrid.Visibility == Visibility.Visible ? Visibility.Hidden : Visibility.Visible;
 
             SetupHideableGridFromLocation();
         }
@@ -435,41 +464,34 @@ namespace Wolf.Utility.Core.Wpf.Controls
             switch (location)
             {
                 case NavigationLocation.Top:
-                    SetupHideableGrid(false);
+                    CreateRowsOrColumnForHideableGrid(false);
                     break;
                 case NavigationLocation.Right:
-                    SetupHideableGrid(true);
+                    CreateRowsOrColumnForHideableGrid(true);
                     break;
                 case NavigationLocation.Bottom:
-                    SetupHideableGrid(false);
+                    CreateRowsOrColumnForHideableGrid(false);
                     break;
                 case NavigationLocation.Left:
-                    SetupHideableGrid(true);
+                    CreateRowsOrColumnForHideableGrid(true);
                     break;
                 default:
                     throw new ImpossibleException($"Code reached default section of switch in {nameof(SetupHideableGridFromLocation)}. " +
                         $"This should be Impossible, as no more than the listed cases should ever be able to exists");
             }
-        }      
-        private void SetupHideableGrid(bool isVertical)
+        }
+        private void CreateRowsOrColumnForHideableGrid(bool createRows)
         {
-            ClearDefinitions(isVertical, hideableGrid);
+            ClearDefinitions(createRows, hideableGrid);
 
-            switch (isVertical)
-            {
-                case true:
-                    hideableGrid.RowDefinitions.AddAmount(orderedNavigations.Count());
-                    break;
-                case false:
-                    hideableGrid.ColumnDefinitions.AddAmount(orderedNavigations.Count());
-                    break;
-            }
+            if(createRows) hideableGrid.RowDefinitions.AddAmount(orderedNavigations.Count());
+            else hideableGrid.ColumnDefinitions.AddAmount(orderedNavigations.Count());
         }
         #endregion
 
-        private void ClearDefinitions(bool isVertical, Grid grid)
+        private void ClearDefinitions(bool isForRows, Grid grid)
         {
-            if (isVertical)
+            if (isForRows)
                 grid.RowDefinitions.Clear();
             else
                 grid.ColumnDefinitions.Clear();

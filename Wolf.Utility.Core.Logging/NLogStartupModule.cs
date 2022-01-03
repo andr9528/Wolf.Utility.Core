@@ -41,7 +41,7 @@ namespace Wolf.Utility.Core.Logging
         /// <param name="services"></param>
         public void SetupServices(IServiceCollection services)
         {
-            services.AddScoped<ILoggerManager, LoggerManager>();
+            services.AddTransient<ILoggerManager, LoggerManager>();
 
             var config = new LoggingConfiguration();
             if (File)

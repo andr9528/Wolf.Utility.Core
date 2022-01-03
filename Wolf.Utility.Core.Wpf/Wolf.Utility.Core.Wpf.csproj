@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Wolf.Utility.Core.Exceptions\Wolf.Utility.Core.Exceptions.csproj" />
+    <ProjectReference Include="..\Wolf.Utility.Core.Logging\Wolf.Utility.Core.Logging.csproj" />
     <ProjectReference Include="..\Wolf.Utility.Core.Startup\Wolf.Utility.Core.Startup.csproj" />
   </ItemGroup>
 

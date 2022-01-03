@@ -11,7 +11,7 @@ namespace Wolf.Utility.Core.Logging
     public class LoggerManager : ILoggerManager
     {
         private ILogger logger = LogManager.GetCurrentClassLogger();
-        private string Caller = "";
+        private string Caller = "UNSET";
 
         public void SetCaller(string caller)
         {
