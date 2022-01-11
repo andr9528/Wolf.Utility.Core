@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wolf.Utility.Core.Wpf.Controls.Enums
+namespace Wolf.Utility.Core.Wpf.Core.Enums
 {
     public enum NavigationOrder
     {

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Media;
 
-using Wolf.Utility.Core.Wpf.Controls.Enums;
+using Wolf.Utility.Core.Wpf.Core.Enums;
 using Wolf.Utility.Core.Wpf.Extensions;
 
 namespace Wolf.Utility.Core.Wpf.Controls.Model

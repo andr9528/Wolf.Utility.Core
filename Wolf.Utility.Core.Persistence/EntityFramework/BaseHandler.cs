@@ -58,6 +58,12 @@ namespace Wolf.Utility.Core.Persistence.EntityFramework
             
         }
 
+        /// <summary>
+        /// Build queries for all queriable implementation. Use a Switch on the interface version, to divide out into correct methods.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
         protected abstract Task<IQueryable<T>> AbstractFind<T>(T predicate) where T : class, IEntity;
 
         #endregion

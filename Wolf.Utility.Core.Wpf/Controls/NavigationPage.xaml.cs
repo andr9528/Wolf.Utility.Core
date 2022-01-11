@@ -15,10 +15,9 @@ using System.Windows.Shapes;
 
 using Wolf.Utility.Core.Exceptions;
 using Wolf.Utility.Core.Logging;
-using Wolf.Utility.Core.Wpf.Controls.Enums;
 using Wolf.Utility.Core.Wpf.Controls.Model;
 using Wolf.Utility.Core.Wpf.Controls.Resources;
-
+using Wolf.Utility.Core.Wpf.Core.Enums;
 using Wolf.Utility.Core.Wpf.Extensions;
 
 using Xceed.Wpf.Toolkit;
@@ -30,6 +29,9 @@ namespace Wolf.Utility.Core.Wpf.Controls
     /// </summary>
     public partial class NavigationPage : Page
     {
+        public delegate void NavigateDelegate(Page page);
+        public event NavigateDelegate Navigate;
+
         private IEnumerable<NavigationInfo>? navigations = new List<NavigationInfo>();
         private IEnumerable<NavigationInfo>? orderedNavigations = new List<NavigationInfo>();
         private readonly ILoggerManager? logger;
@@ -44,6 +46,7 @@ namespace Wolf.Utility.Core.Wpf.Controls
         private IconButton back = new IconButton();
 
         private Stack<NavigationInfo> History = new Stack<NavigationInfo>();
+        private Stack<Page> SubHistory = new Stack<Page>();
         public Stack<NavigationInfo> GetHistory => History;
 
         
@@ -76,8 +79,17 @@ namespace Wolf.Utility.Core.Wpf.Controls
 
             orderedNavigations = navigations.OrderBy(x => x.Desired);
 
+            Navigate += NavigationPage_Navigate; 
+
             BuildWindow();
         }
+
+        private void NavigationPage_Navigate(Page page)
+        {
+            SubHistory.Push(page);
+            SetPageInFrame(page);
+        }
+
         private void BuildWindow()
         {
             logger?.LogInfo($"Started buildind {nameof(NavigationPage)}.");
@@ -104,7 +116,7 @@ namespace Wolf.Utility.Core.Wpf.Controls
                 VerticalAlignment = VerticalAlignment.Stretch,
                 Content = orderedNavigations.ToList().First().Content               
             };
-            pageViewer.Background = Brushes.Red;
+            //pageViewer.Background = Brushes.Red;
 
             burger = new IconButton()
             {
@@ -131,11 +143,32 @@ namespace Wolf.Utility.Core.Wpf.Controls
 
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            if (History.Count > 1) History.Pop();
-            var last = History.Peek();
-            if (last.Content.Equals(pageViewer.Content)) return;
-            logger?.LogInfo($"Returning to '{last.Title}'.");
-            SetPageInFrame(last);            
+            if (SubHistory.Count > 0)
+            {
+                SubHistory.Pop();
+                if (SubHistory.Count > 0)
+                {
+                    var last = SubHistory.Peek();
+                    logger?.LogInfo($"Returning to '{last.Title}'.");
+                    SetPageInFrame(last);
+                }
+                else 
+                {
+                    var last = History.Peek();
+                    logger?.LogInfo($"Returning to '{last.Title}'.");
+                    SetPageInFrame(last);
+                }
+                
+            }
+            else if (History.Count > 1) 
+            {
+                History.Pop();
+                var last = History.Peek();
+                if (last.Content.Equals(pageViewer.Content)) return;
+                logger?.LogInfo($"Returning to '{last.Title}'.");
+                SetPageInFrame(last);
+            }
+                        
         }
 
         private void Burger_Click(object sender, RoutedEventArgs e)
@@ -271,22 +304,18 @@ namespace Wolf.Utility.Core.Wpf.Controls
             {
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 VerticalAlignment = VerticalAlignment.Stretch,
-                Content = info.Title
+                Content = info.Title,
             };
             if (info.HasIcon) button.Icon = new Image() { Source = info.Icon };
             button.Click += (s, e) =>
             {
+                SubHistory.Clear();
                 History.Push(info);
                 logger?.LogInfo($"Moving on to '{info.Title}'.");
                 SetPageInFrame(info);
             };
 
             return button;
-        }
-
-        private void SetPageInFrame(NavigationInfo info)
-        {
-            pageViewer.Content = info.Content;
         }
 
         #endregion
@@ -495,6 +524,16 @@ namespace Wolf.Utility.Core.Wpf.Controls
                 grid.RowDefinitions.Clear();
             else
                 grid.ColumnDefinitions.Clear();
+        }
+
+        private void SetPageInFrame(NavigationInfo info)
+        {
+            pageViewer.Content = info.Content;
+        }
+
+        private void SetPageInFrame(Page page)
+        {
+            pageViewer.Content = page;
         }
     }
 }

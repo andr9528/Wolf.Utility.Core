@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0-windows</TargetFramework>
+    <TargetFramework>net6.0-windows</TargetFramework>
 	<Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
   </PropertyGroup>
@@ -10,6 +10,7 @@
     <ProjectReference Include="..\Wolf.Utility.Core.Exceptions\Wolf.Utility.Core.Exceptions.csproj" />
     <ProjectReference Include="..\Wolf.Utility.Core.Logging\Wolf.Utility.Core.Logging.csproj" />
     <ProjectReference Include="..\Wolf.Utility.Core.Startup\Wolf.Utility.Core.Startup.csproj" />
+    <ProjectReference Include="..\Wolf.Utility.Core.Wpf.Core\Wolf.Utility.Core.Wpf.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
