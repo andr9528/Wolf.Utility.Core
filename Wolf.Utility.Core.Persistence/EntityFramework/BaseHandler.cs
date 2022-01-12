@@ -18,6 +18,7 @@ namespace Wolf.Utility.Core.Persistence.EntityFramework
     {
         protected TContext Context { get; }
         protected object ContextLock { get; } = new { };
+        private bool SavingChanges = false;
 
         protected BaseHandler(TContext context)
         {
@@ -173,6 +174,8 @@ namespace Wolf.Utility.Core.Persistence.EntityFramework
                 throw new TaskFailedException(TypeExtensions.GetMethodInfo<BaseHandler<TContext>>(nameof(AddAndRetrieve)),
                     $"Task was suppose to add {nameof(entity)} of type {typeof(T).FullName} to database, but failed to set state to added");
 
+            await Save();
+
             var added = await Find(entity);
             return added;
         }
@@ -217,7 +220,25 @@ namespace Wolf.Utility.Core.Persistence.EntityFramework
         #region Help Methods
         protected async Task Save()
         {
-            await Context.SaveChangesAsync();
+            while (SavingChanges) 
+            {
+                await Task.Delay(new TimeSpan(0, 0, 1));
+            }
+
+            try
+            {
+                SavingChanges = true;
+                await Context.SaveChangesAsync();
+            }
+            catch (Exception e)
+            {
+                throw;
+            }
+            finally 
+            {
+                SavingChanges = false;
+            }
+            
         }
 
         internal EntityState CheckEntryState(EntityState state, EntityEntry entry)

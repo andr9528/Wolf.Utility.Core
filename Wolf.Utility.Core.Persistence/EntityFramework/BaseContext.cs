@@ -19,8 +19,6 @@ namespace Wolf.Utility.Core.Persistence.EntityFramework
         {
         }
 
-        protected abstract override void OnModelCreating(ModelBuilder modelBuilder);
-
         protected BaseContext([NotNullAttribute] DbContextOptions options) : base(options)
         {
             this.options = options;

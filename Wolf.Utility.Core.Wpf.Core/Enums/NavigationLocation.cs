@@ -8,7 +8,7 @@ namespace Wolf.Utility.Core.Wpf.Core.Enums
 {
     public enum NavigationLocation
     {
-        Null, Top, Right, Bottom, Left
+        Null = -1, Top, Right, Bottom, Left
 
         
     }

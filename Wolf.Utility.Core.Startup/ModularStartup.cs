@@ -73,6 +73,11 @@ namespace Wolf.Utility.Core.Startup
 
         protected void SetupApplication(IApplicationBuilder app = null)
         {
+            if (app == null) 
+            {
+                app = new ApplicationBuilder(ServiceProvider);
+            }
+
             if (app != null)
             {
                 foreach (var module in _modules)
