@@ -124,7 +124,7 @@ namespace Wolf.Utility.Core.Wpf.Controls
                 VerticalAlignment = VerticalAlignment.Center,
                 Icon = new Image()
                 {
-                    Source = ImageConverter.ByteToImageSource(Icons.burgerIcon)
+                    Source = hidden ? ImageConverter.ByteToImageSource(Icons.burgerIcon) : ImageConverter.ByteToImageSource(Icons.arrowopen)
                 }
             };
             burger.Click += Burger_Click;
@@ -357,26 +357,10 @@ namespace Wolf.Utility.Core.Wpf.Controls
             switch (isLeftNavigation)
             {
                 case true:
-                    switch (hidden)
-                    {
-                        case false:
-                            CreateRowsOrColumnForMainGrid(false, 15, 85);
-                            break;
-                        case true:
-                            CreateRowsOrColumnForMainGrid(false, 5, 95);
-                            break;
-                    }
+                    CreateRowsOrColumnForMainGrid(false, 5, 95);                    
                     break;
                 case false:
-                    switch (hidden)
-                    {
-                        case false:
-                            CreateRowsOrColumnForMainGrid(false, 85, 15);
-                            break;
-                        case true:
-                            CreateRowsOrColumnForMainGrid(false, 95, 5);
-                            break;
-                    }
+                    CreateRowsOrColumnForMainGrid(false, 95, 5);                    
                     break;
                 default:
                     throw new ImpossibleException($"Code reached default section of switch in {nameof(SetupVerticalMainGrid)}. " +
@@ -484,7 +468,7 @@ namespace Wolf.Utility.Core.Wpf.Controls
                 HorizontalAlignment = HorizontalAlignment.Stretch,
                 VerticalAlignment = VerticalAlignment.Stretch,
             };
-            hideableGrid.Visibility = hideableGrid.Visibility == Visibility.Visible ? Visibility.Hidden : Visibility.Visible;
+            hideableGrid.Visibility = hidden ? Visibility.Hidden : Visibility.Visible;
 
             SetupHideableGridFromLocation();
         }
