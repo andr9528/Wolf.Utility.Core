@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Wolf.Utility.Core.Authentication.Google
+namespace Wolf.Utility.Core.Authentication.GoogleInteraction
 {
     public class GoogleProfile
     {

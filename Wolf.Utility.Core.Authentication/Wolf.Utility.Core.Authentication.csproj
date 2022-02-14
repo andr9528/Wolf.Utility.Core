@@ -5,13 +5,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Apis.Auth.AspNetCore3" Version="1.55.0" />
+    <PackageReference Include="Google.Apis.Auth" Version="1.55.0" />
     <PackageReference Include="Google.Apis.PeopleService.v1" Version="1.55.0.2590" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Wolf.Utility.Core.Exceptions\Wolf.Utility.Core.Exceptions.csproj" />
+    <ProjectReference Include="..\Wolf.Utility.Core.Extensions\Wolf.Utility.Core.Extensions.csproj" />
     <ProjectReference Include="..\Wolf.Utility.Core.Startup\Wolf.Utility.Core.Startup.csproj" />
   </ItemGroup>
 

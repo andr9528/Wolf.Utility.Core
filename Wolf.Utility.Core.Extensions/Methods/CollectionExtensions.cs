@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Wolf.Utility.Core.Extensions.Methods
 {
@@ -15,6 +16,17 @@ namespace Wolf.Utility.Core.Extensions.Methods
         {
             list.RemoveAt(index);
             return list;
+        }
+
+        public static bool EnsureContains<T>(this IEnumerable<T> list, IEnumerable<T> mustContain) 
+        {
+            var matches = new List<bool>();
+            foreach (var must in mustContain) 
+            {
+                if (list.Contains(must)) matches.Add(true);
+                else matches.Add(false);
+            }
+            return matches.All(x => x == true);
         }
     }
 }

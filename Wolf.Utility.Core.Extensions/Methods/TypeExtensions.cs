@@ -37,5 +37,22 @@ namespace Wolf.Utility.Core.Extensions.Methods
 
 
         }
+        // https://stackoverflow.com/questions/10261824/how-can-i-get-all-constants-of-a-type-by-reflection
+        /// <summary>
+        /// By default gets all public constants defines in the type supplied. 
+        /// Can be supplied with a different BindingFlags combination to get another subset of Fields.
+        /// Substituting the BindingFlags.Public with BindingFlags.NonPublic to get the private or internal fields.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="flags"></param>
+        /// <returns></returns>
+        public static IEnumerable<FieldInfo> GetConstants(this Type type, 
+            BindingFlags flags = BindingFlags.Public |
+                BindingFlags.Static | BindingFlags.FlattenHierarchy) 
+        {
+            FieldInfo[] fieldInfos = type.GetFields(flags);
+
+            return fieldInfos.Where(fi => fi.IsLiteral && !fi.IsInitOnly).ToList();
+        }
     }
 }
