@@ -61,7 +61,7 @@ namespace Wolf.Utility.Core.Startup
                 services = serviceCollection;
             }
 
-            Services = services;
+            Services = services;            
 
             foreach (var module in _modules)
             {

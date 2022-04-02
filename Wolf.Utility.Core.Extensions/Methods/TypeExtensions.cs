@@ -54,5 +54,25 @@ namespace Wolf.Utility.Core.Extensions.Methods
 
             return fieldInfos.Where(fi => fi.IsLiteral && !fi.IsInitOnly).ToList();
         }
+               
+
+        /// <summary>
+        /// Creates an instance of the type designated by the specified generic type parameter, using the matching constructor for the parameters in <paramref name="parameters"/>. Order of parameters matter in matching with the correct constructor.
+        /// </summary>
+        /// <typeparam name="T">The type to create and return.</typeparam>
+        /// <param name="activator"></param>
+        /// <param name="parameters"></param>
+        /// <returns>A reference to the newly created object.</returns>
+        /// <exception cref="System.MissingMethodException">In the .NET for Windows Store apps or the Portable Class Library, catch the base
+        ///     class exception, System.MissingMemberException, instead.
+        ///     Cannot create an instance of an abstract class, or the type that is specified
+        ///     for T does not have a matching constructor.</exception>        
+        public static T CreateInstance<T>(params object[] parameters) where T : class
+        {
+            var type = typeof(T);
+
+            var instance = Activator.CreateInstance(type, parameters);
+            return (T)instance;
+        }
     }
 }
