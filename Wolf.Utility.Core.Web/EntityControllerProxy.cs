@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 
 using Newtonsoft.Json;
 
@@ -16,7 +17,7 @@ using Wolf.Utility.Core.Persistence.EntityFramework.Core;
 
 namespace Wolf.Utility.Core.Web
 {
-    public abstract class EntityControllerProxy<TEntity> : ControllerProxy, IAdvancedController<TEntity> where TEntity : class, IEntity  
+    public abstract class EntityControllerProxy<TEntity> : ControllerProxy, IAdvancedController<TEntity>, IEntityControllerProxy<TEntity> where TEntity : class, IEntity  
     {
         protected EntityControllerProxy(string baseAddress, string controller, IHandler handler = null)
             : base(baseAddress, controller, handler)
@@ -29,7 +30,9 @@ namespace Wolf.Utility.Core.Web
 
         protected abstract RestRequest BuildGetRequestQuery(TEntity entity);
 
-        public async virtual Task<ActionResult<IEnumerable<TEntity>>> Get(TEntity entity) 
+        #region Explicit IAdvancedController
+
+        async Task<ActionResult<IEnumerable<TEntity>>> IAdvancedController<TEntity>.Get(TEntity entity)
         {
             var req = BuildGetRequestQuery(entity);
 
@@ -44,7 +47,7 @@ namespace Wolf.Utility.Core.Web
             return new StatusCodeResult((int)res.StatusCode);
         }
 
-        public async virtual Task<IActionResult> Delete(TEntity entity)
+        async Task<IActionResult> IAdvancedController<TEntity>.Delete(TEntity entity)
         {
             var req = new RestRequest();
             req.AddJsonBody(entity);
@@ -53,9 +56,9 @@ namespace Wolf.Utility.Core.Web
 
             if (res.IsSuccessful) return new OkResult();
             return new StatusCodeResult((int)res.StatusCode);
-        }
+}
 
-        public async virtual Task<ActionResult<TEntity>> Post(TEntity entity)
+        async Task<ActionResult<TEntity>> IAdvancedController<TEntity>.Post(TEntity entity)
         {
             var req = new RestRequest();
             req.AddJsonBody(entity);
@@ -71,7 +74,7 @@ namespace Wolf.Utility.Core.Web
             return new StatusCodeResult((int)res.StatusCode);
         }
 
-        public async virtual Task<ActionResult<TEntity>> Put(TEntity entity)
+        async Task<ActionResult<TEntity>> IAdvancedController<TEntity>.Put(TEntity entity)
         {
             var req = new RestRequest();
             req.AddJsonBody(entity);
@@ -85,6 +88,34 @@ namespace Wolf.Utility.Core.Web
             }
 
             return new StatusCodeResult((int)res.StatusCode);
+        }
+
+        #endregion
+
+        public async Task<IEnumerable<TEntity>> GetEntities(TEntity entity)
+        {
+            var retrieved = (await ((IAdvancedController<TEntity>)this).Get(entity)).Value;
+            return retrieved;
+        }
+
+        public async Task<TEntity> GetOrAddEntity(TEntity entity)
+        {
+            var retrieved = (await ((IAdvancedController<TEntity>)this).Post(entity)).Value;
+            return retrieved;
+        }
+
+        public async Task<TEntity> UpdateAndGetEntity(TEntity entity)
+        {
+            var retrieved = (await ((IAdvancedController<TEntity>)this).Put(entity)).Value;
+            return retrieved;
+        }
+
+        public async Task<bool> DeleteEntity(TEntity entity)
+        {
+            var retrieved = (await ((IAdvancedController<TEntity>)this).Delete(entity));
+            
+            if (retrieved is OkObjectResult) return true;
+            return false;
         }
     }
 }

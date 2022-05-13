@@ -113,6 +113,16 @@ namespace Wolf.Utility.Core.Wpf.Controls.Resources {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        public static byte[] GoogleSignIn {
+            get {
+                object obj = ResourceManager.GetObject("GoogleSignIn", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         public static byte[] hidepasswordicon {
             get {
                 object obj = ResourceManager.GetObject("hidepasswordicon", resourceCulture);

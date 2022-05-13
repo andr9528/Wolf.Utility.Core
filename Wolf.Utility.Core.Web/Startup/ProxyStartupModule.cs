@@ -9,12 +9,13 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Wolf.Utility.Core.Extensions.Methods;
+using Wolf.Utility.Core.Persistence.Core;
 using Wolf.Utility.Core.Persistence.EntityFramework.Core;
 using Wolf.Utility.Core.Startup;
 
 namespace Wolf.Utility.Core.Web.Startup
 {
-    public class ProxyStartupModule<TProxy> : IStartupModule where TProxy : ControllerProxy
+    public class ProxyStartupModule<TProxy, TEntity> : IStartupModule where TProxy : ControllerProxy where TEntity : class, IEntity
     {
         const string BaseAddressConfigFieldName = "BaseAddress";
 
@@ -32,6 +33,7 @@ namespace Wolf.Utility.Core.Web.Startup
             this.useHandlerConstructor = useHandlerConstructor;
 
             baseAddress = config.GetValue(BaseAddressConfigFieldName, default(string));
+            if (string.IsNullOrWhiteSpace(baseAddress)) throw new ArgumentNullException($"Failed to retrieve a valid string from Application Settings - {nameof(baseAddress)}");
         }
 
         public void ConfigureApplication(IApplicationBuilder app)
@@ -54,7 +56,7 @@ namespace Wolf.Utility.Core.Web.Startup
                 proxy = TypeExtensions.CreateInstance<TProxy>(baseAddress, controller);
             }
             
-            services.AddSingleton(proxy);
+            services.AddSingleton((IEntityControllerProxy<TEntity>)proxy);
         }
     }
 }

@@ -19,19 +19,24 @@ namespace Wolf.Utility.Core.Authentication.GoogleInteraction
         const string ClientSecretConfigFieldName = "GoogleClientSecret";
         const string ClientIdConfigFieldName = "GoogleClientId";
         const string ClientApiKeyConfigFieldName = "GoogleApiKey";
+
+        private string ConfigClientId;
+        private string ConfigClientSecret;
+        private string ConfigClientApiKey;
+
         public GoogleLoginStartupModule(IConfiguration config)
         {
-            GoogleProxy.ConfigClientId = config.GetValue(ClientIdConfigFieldName, default(string));
-            GoogleProxy.ConfigClientSecret = config.GetValue(ClientSecretConfigFieldName, default(string));
-            GoogleProxy.ConfigClientApiKey = config.GetValue(ClientApiKeyConfigFieldName, default(string));
+            ConfigClientId = config.GetValue(ClientIdConfigFieldName, default(string));
+            ConfigClientSecret = config.GetValue(ClientSecretConfigFieldName, default(string));
+            ConfigClientApiKey = config.GetValue(ClientApiKeyConfigFieldName, default(string));
 
-            if (GoogleProxy.ConfigClientId == default) 
+            if (ConfigClientId == default) 
                 throw new MissingConfigFieldException($"Config field with name '{ClientIdConfigFieldName}' is missing from appsettings. " +
                     $"Field should contain the OAuth Client Id from Google Cloud");
-            if (GoogleProxy.ConfigClientSecret == default)
+            if (ConfigClientSecret == default)
                 throw new MissingConfigFieldException($"Config field with name '{ClientSecretConfigFieldName}' is missing from appsettings. " +
                     $"Field should contain the OAuth Client Secret from Google Cloud");
-            if (GoogleProxy.ConfigClientApiKey == default)
+            if (ConfigClientApiKey == default)
                 throw new MissingConfigFieldException($"Config field with name '{ClientApiKeyConfigFieldName}' is missing from appsettings. " +
                     $"Field should contain the Api Key from Google Cloud");
 
@@ -44,7 +49,7 @@ namespace Wolf.Utility.Core.Authentication.GoogleInteraction
 
         public void SetupServices(IServiceCollection services)
         {
-            services.AddSingleton(new GoogleProxy());
+            services.AddSingleton(new GoogleProxy(ConfigClientId, ConfigClientSecret, ConfigClientApiKey));
         }
     }
 }

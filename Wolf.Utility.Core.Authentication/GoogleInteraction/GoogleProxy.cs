@@ -6,26 +6,30 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Auth.OAuth2.Responses;
 using Google.Apis.PeopleService.v1;
 using Google.Apis.Util;
 
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 using RestSharp;
 using RestSharp.Authenticators;
 
+using Wolf.Utility.Core.Authentication.GoogleInteraction.ProfileReponse;
 using Wolf.Utility.Core.Extensions.Methods;
+using Wolf.Utility.Core.Logging;
 
 namespace Wolf.Utility.Core.Authentication.GoogleInteraction
 {
     // https://developers.google.com/api-client-library/dotnet/guide/aaa_oauth
     public class GoogleProxy
     {
-        public static string ConfigClientId = ""; 
-        public static string ConfigClientSecret = "";            
-        public static string ConfigClientApiKey = "";
+        private string ConfigClientId;
+        private string ConfigClientSecret;
+        private string ConfigClientApiKey;
 
         private UserCredential Credential = default;
         private TokenResponse Token = default;
@@ -34,8 +38,15 @@ namespace Wolf.Utility.Core.Authentication.GoogleInteraction
         private bool IsTokenSet => Token != default;
         private bool IsRefreshTokenPresent => Token.RefreshToken != default;
 
-        public async Task Login(IEnumerable<ValidScopes> validScopes)
-        {          
+        public GoogleProxy(string clientId, string clientSecret, string clientKey)
+        {
+            ConfigClientId = clientId;
+            ConfigClientSecret = clientSecret;
+            ConfigClientApiKey = clientKey;
+        }
+
+        public async Task Login(IEnumerable<ValidScopes> validScopes, ILoggerManager logger = default)
+        {
             validScopes = validScopes.Distinct();
             var scopes = GoogleScopes.EnumToString(validScopes);
 
@@ -47,62 +58,72 @@ namespace Wolf.Utility.Core.Authentication.GoogleInteraction
                 Token = Credential.Token;
             }
             if (IsTokenSet && IsTokenExpired && IsRefreshTokenPresent)
-                await GoogleWebAuthorizationBroker.ReauthorizeAsync(Credential, CancellationToken.None);                     
+                await GoogleWebAuthorizationBroker.ReauthorizeAsync(Credential, CancellationToken.None);
 
-            
             Scopes = validScopes;
-        }        
-
-        public async Task<string> GetProfileInfo()
-        {
-            if (IsTokenSet && IsTokenExpired || !Scopes.EnsureContains(new[] { ValidScopes.UserInfoProfile }))
-                await Login(Scopes.Concat(new[] { ValidScopes.UserInfoProfile }));
-
-            var client = new RestClient("https://people.googleapis.com/v1/people/me");
-            client.AddDefaultHeader("Authorization", $"Bearer {Token.AccessToken}");
-            //client.Authenticator = new OAuth2AuthorizationRequestHeaderAuthenticator(Token.AccessToken, "Bearer");
-
-            var request = new RestRequest();
-            request.AddQueryParameter("personFields", "names");
-            request.AddQueryParameter("key", ConfigClientApiKey);
-
-            var response = await client.GetAsync<string>(request);
-            return response.ToString();
         }
 
+        public async Task<GoogleProfile> GetProfileInfo(ILoggerManager logger = default)
+        {
+            try
+            {
+                if (IsTokenSet && IsTokenExpired || !Scopes.EnsureContains(new[] { ValidScopes.UserInfoProfile }))
+                    await Login(Scopes.Concat(new[] { ValidScopes.UserInfoProfile }));
+
+                var client = new RestClient("https://people.googleapis.com/v1/people/me");
+                client.AddDefaultHeader("Authorization", $"Bearer {Token.AccessToken}");
+                //client.Authenticator = new OAuth2AuthorizationRequestHeaderAuthenticator(Token.AccessToken, "Bearer");
+
+                var request = new RestRequest();
+                request.AddQueryParameter("personFields", "names");
+                request.AddQueryParameter("key", ConfigClientApiKey);
+
+                var response = await client.GetAsync<string>(request);
+                Root json = JsonConvert.DeserializeObject<Root>(response);
+                var profile = new GoogleProfile() { Email = $"N/A", Name = json.names.FirstOrDefault().displayName, Id = json.names.FirstOrDefault().metadata.source.id, Picture = $"N/A", Verified_Email = $"N/A" };
+
+                return profile;
+            }
+            catch (Exception e)
+            {
+                logger?.LogError(e.ToString());
+                throw;
+            }
+        }
     }
-    public enum ValidScopes 
+
+    public enum ValidScopes
     {
         UserInfoProfile
     }
 
-    internal class GoogleScopes 
+    internal class GoogleScopes
     {
-        const string UserInfoProfile = PeopleServiceService.ScopeConstants.UserinfoProfile;
+        private const string UserInfoProfile = PeopleServiceService.ScopeConstants.UserinfoProfile;
 
         private static GoogleScopes instance = default;
+
         private GoogleScopes()
         {
-
         }
 
-        internal static GoogleScopes GetInstance() 
+        internal static GoogleScopes GetInstance()
         {
             if (instance == default) instance = new GoogleScopes();
             return instance;
         }
 
-        static internal IEnumerable<string> EnumToString(IEnumerable<ValidScopes> scopes) 
+        internal static IEnumerable<string> EnumToString(IEnumerable<ValidScopes> scopes)
         {
             var result = new List<string>();
 
             var constants = typeof(GoogleScopes).GetConstants(BindingFlags.NonPublic |
                 BindingFlags.Static | BindingFlags.FlattenHierarchy);
-            
-            foreach (var scope in scopes) 
+
+            foreach (var scope in scopes)
             {
                 var found = constants.Where(x => x.Name == scope.ToString());
-                if (found.Any()) 
+                if (found.Any())
                 {
                     var field = found.First();
                     result.Add(field.GetValue(GetInstance()).ToString());
@@ -111,6 +132,4 @@ namespace Wolf.Utility.Core.Authentication.GoogleInteraction
             return result;
         }
     }
-    
 }
-
