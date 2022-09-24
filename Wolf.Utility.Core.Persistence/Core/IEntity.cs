@@ -4,9 +4,8 @@ using System.Text;
 
 namespace Wolf.Utility.Core.Persistence.Core
 {
-    public interface IEntity
+    public interface IEntity : ISearchableEntity
     {
-        int Id { get; set; }
         byte[] Version { get; set; }
         DateTime CreatedDate { get; set; }
         DateTime UpdatedDate { get; set; }

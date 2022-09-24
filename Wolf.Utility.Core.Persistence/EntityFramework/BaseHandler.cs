@@ -3,256 +3,60 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
-
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Wolf.Utility.Core.Exceptions;
-using Wolf.Utility.Core.Extensions.Methods;
 using Wolf.Utility.Core.Persistence.Core;
 using Wolf.Utility.Core.Persistence.EntityFramework.Core;
 using Wolf.Utility.Core.Persistence.Exceptions;
+using TypeExtensions = Wolf.Utility.Core.Extensions.Methods.TypeExtensions;
 
 namespace Wolf.Utility.Core.Persistence.EntityFramework
 {
-    public abstract class BaseHandler<TContext> : IHandler where TContext : BaseContext
+    public abstract class BaseHandler<TContext, TEntity, TSearchable> : IHandler<TEntity, TSearchable>
+        where TContext : BaseContext where TEntity : class, IEntity where TSearchable : class, ISearchableEntity, new()
     {
         protected TContext Context { get; }
         protected object ContextLock { get; } = new { };
-        private bool SavingChanges = false;
+        private bool SavingChanges;
 
         protected BaseHandler(TContext context)
         {
             Context = context;
         }
 
-        #region Find
-        /// <summary>
-        /// Finds exactly one result matching the input predicate. If there are more or less, throws an exception.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="predicate">A version of the type to search for, with some of its properties set to search parameters</param>
-        /// <returns></returns>
-        /// <exception cref="Wolf.Utility.Core.Exceptions.IncorrectCountException{T}">Thrown when there is less or more than 1 result found matching the predicate</exception>
-        public async Task<T> Find<T>(T predicate) where T : class, IEntity
-        {            
-            var query = await AbstractFind(predicate);
 
-            var result = FindOneResult(query);
-
-            return result;            
-        }
-
-        /// <summary>
-        /// Finds one ore more results matching the input predicate. If there are 0, throws an exception.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="predicate">A version of the type to search for, with some of its properties set to search parameters</param>
-        /// <returns></returns>
-        /// <exception cref="Wolf.Utility.Core.Exceptions.IncorrectCountException{T}">Thrown when there is 0 results found matching the predicate</exception>
-        public async Task<IEnumerable<T>> FindMultiple<T>(T predicate) where T : class, IEntity
-        {            
-            var query = await AbstractFind(predicate);
-
-            var result = FindMultipleResults(query);
-
-            return result;
-            
-        }
-
-        /// <summary>
-        /// Build queries for all queriable implementation. Use a Switch on the interface version, to divide out into correct methods.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
-        protected abstract Task<IQueryable<T>> AbstractFind<T>(T predicate) where T : class, IEntity;
-
-        #endregion
-
-        #region Update and Retrieve
-        /// <summary>
-        /// Updates the inputed element in the database, and then retrieves and returns the updated version.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="entity">The element to update in database, and retrieve updated version of.</param>
-        /// <returns></returns>
-        /// <exception cref="System.ArgumentException">Thrown when the inputed element's Id is 0</exception>
-        /// <exception cref="Wolf.Utility.Core.Exceptions.TaskFailedException">Thrown when it failes to changed the tracked state of the element to modified</exception>
-        public async Task<T> UpdateAndRetrieve<T>(T entity) where T : class, IEntity 
-        {
-            if (entity.Id == 0)
-                throw new ArgumentException($"I need an Id to figure out what to update", new ArgumentException("Id of predicate can not be 0"));
-
-            var result = await VirtualUpdate(entity);
-            if (result == false)
-                throw new TaskFailedException(TypeExtensions.GetMethodInfo<BaseHandler<TContext>>(nameof(UpdateAndRetrieve)), 
-                    $"Task was suppose to update {nameof(entity)} of type {typeof(T).FullName} in database, but failed to set state to modified");
-
-            await Save();
-
-            var updated = await Find(entity);
-            return updated;
-        }
-
-        protected virtual async Task<bool> VirtualUpdate<T>(T entity) where T : class, IEntity
-        {
-            EntityEntry entry = null;
-            EntityState state = EntityState.Unchanged;
-
-            entry = Context.Update(entity);
-
-            state = CheckEntryState(state, entry);
-            return VerifyEntryState(state, EntityState.Modified);
-        }
-        #endregion
-
-        #region Delete
-        /// <summary>
-        /// Deletes an inputed entity fro mthe backing database.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="entity">The entity to delete from the database.</param>
-        /// <returns>True is it was deleted, otherwise false.</returns>
-        /// <exception cref="ArgumentException">Thrown if the Id of <paramref name="entity"/> is 0.</exception>
-        public async Task<bool> Delete<T>(T entity) where T : class, IEntity
-        {
-            if (entity.Id == 0)
-                throw new ArgumentException($"I need an Id to figure out what to remove", new ArgumentException("Id of predicate can't be 0"));
-
-            var result = await VirtualDelete(entity);
-            
-            await Save();
-
-            return result;
-        }
-
-        protected virtual async Task<bool> VirtualDelete<T>(T entity) where T : class, IEntity
-        {
-            EntityEntry entry = null;
-            EntityState state = EntityState.Unchanged;
-
-            entry = Context.Remove(entity);
-
-            state = CheckEntryState(state, entry);
-            return VerifyEntryState(state, EntityState.Deleted);
-        }
-
-
-        #endregion
-
-        #region Add and Retrieve
-        /// <summary>
-        /// Addes the inputed element to the database, and then retrieves and returns the added version.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="entity">The element to add to the database, and retrieve the added version of.</param>
-        /// <param name="tryRetrieveFirst">Wheather or not to attempt to retrieve using the inputed element, before adding, and then retrieving. 
-        /// Lowers duplicate entities, in theory</param>
-        /// <returns></returns>
-        /// <exception cref="System.ArgumentException">Thrown when the inputed element's Id is not 0</exception>
-        /// <exception cref="Wolf.Utility.Core.Exceptions.TaskFailedException">Thrown when it failes to changed the tracked state of the element to added</exception>
-        public async Task<T> AddAndRetrieve<T>(T entity, bool tryRetrieveFirst = true) where T : class, IEntity 
-        {
-            if (entity.Id != 0)
-                throw new ArgumentException($"I need Id to be 0 to set it properly myself", new ArgumentException($"Id of predicate has to be 0"));
-
-            if (tryRetrieveFirst) 
-            {
-                try
-                {
-                    var retrieve = await Find(entity);
-                    return retrieve;
-                }
-                catch (IncorrectCountException<T> ice)
-                {
-                    if (ice.ToMany) throw new Exception($"While attempting to retrive before adding, found more than one result matching {nameof(entity)}", ice);
-                }
-            }            
-
-            var result = await VirtualAdd(entity);
-            if (result == false)
-                throw new TaskFailedException(TypeExtensions.GetMethodInfo<BaseHandler<TContext>>(nameof(AddAndRetrieve)),
-                    $"Task was suppose to add {nameof(entity)} of type {typeof(T).FullName} to database, but failed to set state to added");
-
-            await Save();
-
-            var added = await Find(entity);
-            return added;
-        }
-
-        protected virtual async Task<bool> VirtualAdd<T>(T entity) where T : class, IEntity
-        {
-            EntityEntry entry = null;
-            EntityState state = EntityState.Unchanged;
-
-            entry = Context.Add(entity);
-
-            state = CheckEntryState(state, entry);
-            return VerifyEntryState(state, EntityState.Added);
-        }
-
-        #endregion
-
-        #region Add Multiple and Retrieve
-
-        /// <summary>
-        /// Adds a collection of elements to the database
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="entities">The elements to add to the database.</param>
-        /// <param name="tryRetrieveFirst">Wheather or not to attempt to retrieve using the inputed element, before adding, and then retrieving. 
-        /// Lowers duplicate entities, in theory</param>
-        /// <returns>An ICollection of the added elements, after they have been freshly retrieved from the database</returns>
-        public async Task<ICollection<T>> AddMultipleAndRetrieve<T>(ICollection<T> entities, bool tryRetrieveFirst = true) where T : class, IEntity 
-        {
-            var results = new List<T>();
-
-            foreach (var entity in entities)
-            {
-                results.Add(await AddAndRetrieve(entity, tryRetrieveFirst));
-            }
-
-            return results;
-        }
-
-        #endregion
-               
         #region Help Methods
-        protected async Task Save()
+
+        private async Task Save()
         {
-            while (SavingChanges) 
-            {
-                await Task.Delay(new TimeSpan(0, 0, 1));
-            }
+            while (SavingChanges) await Task.Delay(new TimeSpan(0, 0, 1));
 
             try
             {
                 SavingChanges = true;
                 await Context.SaveChangesAsync();
             }
-            catch (Exception e)
-            {
-                throw;
-            }
-            finally 
+            finally
             {
                 SavingChanges = false;
             }
-            
         }
 
-        internal EntityState CheckEntryState(EntityState state, EntityEntry entry)
+        private EntityState CheckEntryState(EntityState state, EntityEntry entry)
         {
             if (entry != null)
                 state = entry.State;
             return state;
         }
 
-        internal bool VerifyEntryState(EntityState actualState, EntityState desiredState)
+        private bool VerifyEntryState(EntityState actualState, EntityState desiredState)
         {
-            return actualState == desiredState ? true : false;
+            return actualState == desiredState;
         }
-        
+
         /// <summary>
         /// Retrieves exactly one result, matching the query input. If there are more or less, throws an exception.
         /// </summary>
@@ -260,18 +64,21 @@ namespace Wolf.Utility.Core.Persistence.EntityFramework
         /// <param name="query">The query to run, and retrieve Entities via</param>
         /// <returns></returns>
         /// <exception cref="Wolf.Utility.Core.Exceptions.IncorrectCountException{T}">Thrown when there is less or more than 1 result found matching the query</exception>
-        private T FindOneResult<T>(IQueryable<T> query) where T : class, IEntity
+        private TEntity FindOneResult(IQueryable<TEntity> query)
         {
             lock (ContextLock)
             {
                 var result = query.ToList();
-                if (result.Count == 1)
-                    return result.First();
-                if (result.Count > 1)
-                    throw IncorrectEntityCountException<T>.Constructor(1, result.Count, true, result);
-                throw IncorrectEntityCountException<T>.Constructor(1, result.Count, elements: new List<T>()); 
+                return result.Count switch
+                {
+                    1 => result.First(),
+                    > 1 => throw IncorrectEntityCountException<TEntity>.Constructor(1, result.Count, true, result),
+                    _ => throw IncorrectEntityCountException<TEntity>.Constructor(1, result.Count,
+                        elements: new List<TEntity>())
+                };
             }
         }
+
         /// <summary>
         /// Retrieves one or more results, matching the query input. If there are 0 results, throws an exception.
         /// </summary>
@@ -279,92 +86,230 @@ namespace Wolf.Utility.Core.Persistence.EntityFramework
         /// <param name="query">The query to run, and retrieve Entities via</param>
         /// <returns></returns>
         /// <exception cref="Wolf.Utility.Core.Exceptions.IncorrectCountException{T}">Thrown when there is 0 results found matching the query</exception>
-        private ICollection<T> FindMultipleResults<T>(IQueryable<T> query) where T : class, IEntity
+        private ICollection<TEntity> FindMultipleResults(IQueryable<TEntity> query)
         {
             lock (ContextLock)
             {
                 var result = query.ToList();
                 if (result.Any())
                     return result;
-                throw IncorrectEntityCountException<T>.Constructor(1, result.Count, elements: new List<T>()); 
+                throw IncorrectEntityCountException<TEntity>.Constructor(1, result.Count,
+                    elements: new List<TEntity>());
             }
         }
 
         #endregion
 
-        #region Obsolete
+        #region Find
 
-        #region Add
+        protected abstract IQueryable<TEntity> GetQueryable();
 
-        [Obsolete("Use AddAndRetrieve instead. As IEntity makes use of Version History, the most recent version is needed for further changes.")]
-        public async Task<bool> Add<T>(T element, bool autoSave = true) where T : class, IEntity
+        protected virtual IQueryable<TEntity> BuildFindQuery(TSearchable search)
         {
-            if (element.Id != 0)
-                throw new ArgumentException($"I need Id to be 0 to set it properly myself", new ArgumentException($"Id of predicate has to be 0"));
+            var query = GetQueryable();
 
-            var result = await VirtualAdd(element);
+            if (search.Id != default)
+                query.Where(x => x.Id == search.Id);
 
-            if (autoSave)
-                await Save();
+            return query;
+        }
 
-            return result;
+
+        /// <inheritdoc />
+        public async Task<TEntity> Find(TSearchable entity)
+        {
+            var query = BuildFindQuery(entity);
+            return FindOneResult(query);
+        }
+
+        /// <inheritdoc />
+        public async Task<IEnumerable<TEntity>> FindMultiple(TSearchable entity)
+        {
+            var query = BuildFindQuery(entity);
+            return FindMultipleResults(query);
         }
 
         #endregion
 
         #region Update
 
-        [Obsolete("Use UpdateAndRetrieve instead. As IEntity makes use of Version History, the most recent version is needed for further changes.")]
-        public async Task<bool> Update<T>(T element, bool autoSave = true) where T : class, IEntity
+        /// <inheritdoc />
+        public async Task<TEntity> UpdateAndRetrieve(TEntity entity)
         {
-            if (element.Id == 0)
-                throw new Exception($"I need an Id to figure out what to update", new ArgumentException("Id of predicate can not be 0"));
+            if (entity.Id == 0)
+                throw new ArgumentException($"I need an Id to figure out what to update",
+                    new ArgumentException("Id of predicate can not be 0"));
 
-            var result = await VirtualUpdate(element);
+            bool result = await UpdateOperation(entity);
+            if (result == false)
+                throw new TaskFailedException(
+                    TypeExtensions
+                        .GetMethodInfo<BaseHandler<TContext, TEntity, TSearchable>>(nameof(UpdateAndRetrieve)),
+                    $"Task was suppose to update {nameof(entity)} of type {typeof(TEntity).FullName} in database, but failed to set state to modified");
 
-            return false;
+            await Save();
+
+            TEntity updated = await Find(entity as TSearchable);
+            return updated;
         }
 
+        /// <inheritdoc />
+        public async Task<ICollection<TEntity>> UpdateMultipleAndRetrieve(ICollection<TEntity> entities)
+        {
+            if (entities.Any(x => x.Id == 0))
+                throw new ArgumentException($"I need an Id to figure out what to update",
+                    new ArgumentException("Id of predicate can not be 0"));
 
+            bool[] results = entities.Select(async x => await UpdateOperation(x)).Select(x => x.Result).ToArray();
+            if (results.Any(x => x == false))
+                throw new TaskFailedException(
+                    TypeExtensions
+                        .GetMethodInfo<BaseHandler<TContext, TEntity, TSearchable>>(nameof(UpdateAndRetrieve)),
+                    $"Task was suppose to update {nameof(entities)} of type {typeof(TEntity).FullName} in database, but failed to set state at least one to modified");
+
+            await Save();
+
+            var updated = entities.Select(async x => await Find(x as TSearchable)).Select(x => x.Result).ToArray();
+            return updated;
+        }
+
+        protected virtual async Task<bool> UpdateOperation(TEntity entity)
+        {
+            EntityEntry entry;
+            var state = EntityState.Unchanged;
+
+            entry = Context.Update(entity);
+
+            state = CheckEntryState(state, entry);
+            return VerifyEntryState(state, EntityState.Modified);
+        }
 
         #endregion
 
-        #region AddMultiple
+        #region Delete
 
-        [Obsolete("Use AddMultipleAndRetrieve instead. As IEntity makes use of Version History, the most recent version is needed for further changes.")]
-        public async Task<string> AddMultiple<T>(ICollection<T> elements) where T : class, IEntity
+        /// <inheritdoc />
+        public async Task<bool> Delete(TEntity entity)
         {
-            var added = await VirtualAddMultiple(elements);
-            var result = GetAmountAdded(added);
+            if (entity.Id == default)
+                throw new ArgumentException($"I need an Id to figure out what to remove",
+                    new ArgumentException("Id of predicate can't be 0"));
+
+            bool result = await DeleteOperation(entity);
 
             await Save();
 
             return result;
         }
 
-        [Obsolete("Only used by AddMultiple which is also Obsolete")]
-        protected virtual async Task<ICollection<bool>> VirtualAddMultiple<T>(ICollection<T> elements)
-            where T : class, IEntity
+        /// <inheritdoc />
+        public async Task<bool> Delete(int id)
         {
-            var results = new List<bool>();
+            if (id == default)
+                throw new ArgumentException($"I need an Id to figure out what to remove",
+                    new ArgumentException("Id of predicate can't be 0"));
 
-            foreach (var element in elements)
-            {
-                results.Add(await Add(element, false));
-            }
+            var search = new TSearchable() { Id = id };
+            TEntity entity = await Find(search);
+            bool result = await DeleteOperation(entity);
 
-            return results;
+            await Save();
+
+            return result;
+        }
+
+        protected virtual async Task<bool> DeleteOperation(TEntity entity)
+        {
+            EntityEntry entry;
+            var state = EntityState.Unchanged;
+
+            entry = Context.Remove(entity);
+
+            state = CheckEntryState(state, entry);
+            return VerifyEntryState(state, EntityState.Deleted);
         }
 
         #endregion
 
-        [Obsolete("Only used by AddMultiple which is also Obsolete")]
-        internal string GetAmountAdded(ICollection<bool> results)
+        #region Add
+        /// <inheritdoc />
+        public async Task<TEntity> AddAndRetrieve(TEntity entity, bool tryRetrieveFirst = true)
         {
-            return $"Added {results.Count(b => b)} out of {results.Count}.";
+            if (entity.Id != 0)
+                throw new ArgumentException($"I need Id to be 0 to set it properly myself",
+                    new ArgumentException($"Id of predicate has to be 0"));
+
+            if (tryRetrieveFirst)
+                try
+                {
+                    TEntity retrieve = await Find(entity as TSearchable);
+                    return retrieve;
+                }
+                catch (IncorrectCountException<TEntity> ice)
+                {
+                    if (ice.ToMany)
+                        throw new Exception(
+                            $"While attempting to retrieve before adding, found more than one result matching {nameof(entity)}",
+                            ice);
+                }
+
+            bool result = await AddOperation(entity);
+            if (result == false)
+                throw new TaskFailedException(
+                    TypeExtensions.GetMethodInfo<BaseHandler<TContext, TEntity, TSearchable>>(nameof(AddAndRetrieve)),
+                    $"Task was suppose to add {nameof(entity)} of type {typeof(TEntity).FullName} to database, but failed to set state to added");
+
+            await Save();
+
+            TEntity added = await Find(entity as TSearchable);
+            return added;
         }
 
+        /// <inheritdoc />
+        public async Task<ICollection<TEntity>> AddMultipleAndRetrieve(ICollection<TEntity> entities,
+            bool tryRetrieveFirst = true)
+        {
+            if (entities.Any(x => x.Id != 0))
+                throw new ArgumentException($"I need Id to be 0 to set it properly myself",
+                    new ArgumentException($"Id of predicate has to be 0"));
+
+            if (tryRetrieveFirst)
+                try
+                {
+                    var retrieve = entities.Select(async x => await Find(x as TSearchable)).Select(x => x.Result)
+                        .ToList();
+                    return retrieve;
+                }
+                catch (IncorrectCountException<TEntity> ice)
+                {
+                    if (ice.ToMany)
+                        throw new Exception(
+                            $"While attempting to retrieve before adding, found more than one result matching an entity in {nameof(entities)}",
+                            ice);
+                }
+
+            var result = entities.Select(async x => await AddOperation(x)).Select(x => x.Result).ToList();
+            if (result.Any(x => x == false))
+                throw new TaskFailedException(
+                    TypeExtensions.GetMethodInfo<BaseHandler<TContext, TEntity, TSearchable>>(nameof(AddAndRetrieve)),
+                    $"Task was suppose to add {nameof(entities)} of type {typeof(TEntity).FullName} to database, but failed to set state to added of at least one entity");
+
+            await Save();
+
+            var added = entities.Select(async x => await Find(x as TSearchable)).Select(x => x.Result).ToList();
+            return added;
+        }
+
+        protected virtual async Task<bool> AddOperation<T>(T entity) where T : class, IEntity
+        {
+            EntityEntry entry;
+            var state = EntityState.Unchanged;
+
+            entry = Context.Add(entity);
+
+            state = CheckEntryState(state, entry);
+            return VerifyEntryState(state, EntityState.Added);
+        } 
         #endregion
     }
 }
-
