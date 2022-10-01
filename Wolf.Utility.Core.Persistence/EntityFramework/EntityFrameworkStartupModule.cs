@@ -4,15 +4,21 @@ using System.Text;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Wolf.Utility.Core.Persistence.Core;
 using Wolf.Utility.Core.Persistence.EntityFramework.Core;
 using Wolf.Utility.Core.Startup;
 
 namespace Wolf.Utility.Core.Persistence.EntityFramework
 {
-    public class EntityFrameworkStartupModule<TContext, THandler> : IStartupModule where TContext : DbContext where THandler : class, IHandler
+    public class EntityFrameworkStartupModule<TContext, THandler, TEntity, TSearchable> : IStartupModule
+        where TContext : DbContext
+        where THandler : class, IHandler<TEntity, TSearchable>
+        where TEntity : class, IEntity
+        where TSearchable : class, ISearchableEntity
     {
         private readonly bool migrateOnStartup;
         public SetupOptionsDelegate SetupOptions { get; }
+
         public delegate void SetupOptionsDelegate(DbContextOptionsBuilder options);
 
         public EntityFrameworkStartupModule(SetupOptionsDelegate setup, bool migrateOnStartup = true)
@@ -25,14 +31,15 @@ namespace Wolf.Utility.Core.Persistence.EntityFramework
         {
             services.AddDbContext<TContext>(option => SetupOptions?.Invoke(option));
 
-            services.AddTransient<IHandler, THandler>();
+            services.AddTransient<IHandler<TEntity, TSearchable>, THandler>();
         }
 
         public void ConfigureApplication(IApplicationBuilder app)
         {
             if (migrateOnStartup)
             {
-                using var service = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
+                using IServiceScope service =
+                    app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
                 using var context = service.ServiceProvider.GetService<TContext>();
                 context.Database.Migrate();
             }
