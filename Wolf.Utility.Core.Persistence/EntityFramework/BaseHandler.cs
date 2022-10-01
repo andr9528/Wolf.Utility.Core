@@ -109,7 +109,7 @@ namespace Wolf.Utility.Core.Persistence.EntityFramework
             var query = GetQueryable();
 
             if (search.Id != default)
-                query.Where(x => x.Id == search.Id);
+                query = query.Where(x => x.Id == search.Id);
 
             return query;
         }
