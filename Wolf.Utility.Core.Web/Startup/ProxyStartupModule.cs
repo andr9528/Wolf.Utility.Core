@@ -15,6 +15,9 @@ using Wolf.Utility.Core.Startup;
 
 namespace Wolf.Utility.Core.Web.Startup
 {
+    /// <summary>
+    /// TODO: Requires Reworking, to be functional again
+    /// </summary>
     public class ProxyStartupModule<TProxy, TEntity> : IStartupModule where TProxy : ControllerProxy where TEntity : class, IEntity
     {
         const string BaseAddressConfigFieldName = "BaseAddress";
@@ -38,25 +41,25 @@ namespace Wolf.Utility.Core.Web.Startup
 
         public void ConfigureApplication(IApplicationBuilder app)
         {
-            
+
         }
 
         public void SetupServices(IServiceCollection services)
         {
-            TProxy proxy = null;
-            if (useHandlerConstructor)
-            {
-                var provider = services.BuildServiceProvider();
-                var handler = provider.GetService<IHandler>();
-                
-                proxy = TypeExtensions.CreateInstance<TProxy>(baseAddress, controller, handler);
-            }
-            else 
-            {
-                proxy = TypeExtensions.CreateInstance<TProxy>(baseAddress, controller);
-            }
-            
-            services.AddSingleton((IEntityControllerProxy<TEntity>)proxy);
+            //TProxy proxy = null;
+            //if (useHandlerConstructor)
+            //{
+            //    var provider = services.BuildServiceProvider();
+            //    var handler = provider.GetService<IHandler>();
+
+            //    proxy = TypeExtensions.CreateInstance<TProxy>(baseAddress, controller, handler);
+            //}
+            //else 
+            //{
+            //    proxy = TypeExtensions.CreateInstance<TProxy>(baseAddress, controller);
+            //}
+
+            //services.AddSingleton((IEntityControllerProxy<TEntity>)proxy);
         }
     }
 }
