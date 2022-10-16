@@ -12,34 +12,21 @@ namespace Wolf.Utility.Core.Web
     /// </summary>
     public abstract class ControllerProxy
     {
-        //protected readonly RestClient client;
-        //protected readonly IHandler handler;
+        protected readonly RestClient client;
 
-        ///// <summary>
-        ///// For use with Web Api's
-        ///// </summary>
-        ///// <param name="baseAddress"></param>
-        ///// <param name="controller"></param>
-        ///// <param name="handler"></param>
-        //protected ControllerProxy(string baseAddress, string controller, IHandler handler = null)
-        //{
-        //    client = new RestClient() { BaseUrl = new Uri($"{baseAddress}api/{controller}/") };
-        //    this.handler = handler;
-        //}
-
-        ///// <summary>
-        ///// For use with Websites
-        ///// </summary>
-        ///// <param name="baseAddress"></param>
-        ///// <param name="controller"></param>
-        //protected ControllerProxy(string baseAddress, string controller = default) 
-        //{
-        //    var uri = new Uri($"{baseAddress}");
-        //    if (controller != default)
-        //        uri = new Uri($"{baseAddress}/{controller}");
-        //    client = new RestClient() { BaseUrl = uri };
-        //}
-
-
+        /// <summary>
+        /// For use with connecting to Apis.
+        /// Omit any '/', as they are included automatically.
+        /// </summary>
+        /// <param name="baseAddress">The base location for the api.</param>
+        /// <param name="controllerSegments">Segments to append one after another, after 'api' in the URL, with a '/' between them</param>
+        protected ControllerProxy(string baseAddress, params string[] controllerSegments)
+        {
+            var builder = new StringBuilder($"{baseAddress}/api/");
+            foreach (string controllerSegment in controllerSegments)
+                builder.Append($"{controllerSegment}/");
+            var uri = new Uri(builder.ToString());
+            client = new RestClient() { BaseUrl = uri, };
+        }
     }
 }

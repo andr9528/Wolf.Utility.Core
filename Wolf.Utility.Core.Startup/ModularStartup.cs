@@ -34,7 +34,7 @@ namespace Wolf.Utility.Core.Startup
         /// Make use of the 'AddModule' method during the constructor of the Startup, to create and add necessary modules for the project.
         /// </summary>
         /// <param name="modules"></param>
-        protected ModularStartup(params IStartupModule[] modules) 
+        protected ModularStartup(params IStartupModule[] modules)
         {
             var filename = "appsettings.json";
             if (!File.Exists(Path.Combine(Directory.GetCurrentDirectory(), filename))) throw new FileNotFoundException($"Missing 'appsettings.json' in main directory at {Path.Combine(Directory.GetCurrentDirectory(), filename)}");
@@ -61,9 +61,9 @@ namespace Wolf.Utility.Core.Startup
                 services = serviceCollection;
             }
 
-            Services = services;            
+            Services = services;
 
-            foreach (var module in _modules)
+            foreach (IStartupModule module in _modules)
             {
                 module.SetupServices(services);
             }
@@ -73,17 +73,11 @@ namespace Wolf.Utility.Core.Startup
 
         protected void SetupApplication(IApplicationBuilder app = null)
         {
-            if (app == null) 
-            {
-                app = new ApplicationBuilder(ServiceProvider);
-            }
+            app ??= new ApplicationBuilder(ServiceProvider);
 
-            if (app != null)
+            foreach (var module in _modules)
             {
-                foreach (var module in _modules)
-                {
-                    module.ConfigureApplication(app);
-                }
+                module.ConfigureApplication(app);
             }
         }
     }

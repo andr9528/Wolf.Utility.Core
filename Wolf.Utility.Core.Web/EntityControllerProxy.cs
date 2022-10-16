@@ -1,124 +1,111 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
-
 using Newtonsoft.Json;
-
 using RestSharp;
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Wolf.Utility.Core.Persistence.Core;
 using Wolf.Utility.Core.Persistence.EntityFramework.Core;
 
 namespace Wolf.Utility.Core.Web
 {
     /// <summary>
-    /// TODO: Requires Reworking, to be functional again
+    /// TODO: Improve error messages when requests fails.
     /// </summary>
-    public abstract class EntityControllerProxy/*<TEntity> : ControllerProxy, IAdvancedController<TEntity>, IEntityControllerProxy<TEntity> where TEntity : class, IEntity*/
+    public abstract class EntityControllerProxy<TEntity, TSearchable, TDto> : ControllerProxy,
+        IEntityControllerProxy<TEntity, TSearchable, TDto> where TEntity : class, IEntity
+        where TSearchable : class, ISearchableEntity
+        where TDto : class, IDto
     {
-//        protected EntityControllerProxy(string baseAddress, string controller, IHandler handler = null)
-//            : base(baseAddress, controller, handler)
-//        {
-//        }
+        /// <summary>
+        /// All all the properties to the request query, that should be searchable.
+        /// </summary>
+        /// <param name="req"></param>
+        /// <param name="entity"></param>
+        protected abstract void AddPropertiesToQuery(RestRequest req, TSearchable entity);
 
-//        protected EntityControllerProxy(string baseAddress, string controller = null) : base(baseAddress, controller)
-//        {
-//        }
+        /// <inheritdoc />
+        protected EntityControllerProxy(string baseAddress, params string[] controllerSegments) : base(baseAddress,
+            controllerSegments)
+        {
+        }
 
-//        protected abstract RestRequest BuildGetRequestQuery(TEntity entity);
+        /// <inheritdoc />
+        public async Task<IEnumerable<TEntity>> GetEntities(TSearchable entity = default)
+        {
+            var req = new RestRequest();
+            if (entity != default)
+                AddPropertiesToQuery(req, entity);
 
-//        #region Explicit IAdvancedController
+            IRestResponse res = await client.ExecuteAsync(req, Method.GET);
 
-//        async Task<ActionResult<IEnumerable<TEntity>>> IAdvancedController<TEntity>.Get(TEntity entity)
-//        {
-//            var req = BuildGetRequestQuery(entity);
+            if (!res.IsSuccessful)
+                throw new Exception($"Request Failed - Status Code: {res.StatusCode}");
 
-//            var res = await client.ExecuteAsync(req, Method.GET);
+            var obj = JsonConvert.DeserializeObject<IEnumerable<TEntity>>(res.Content);
+            return obj;
+        }
 
-//            if (res.IsSuccessful)
-//            {
-//                var obj = JsonConvert.DeserializeObject<IEnumerable<TEntity>>(res.Content);
-//                return new OkObjectResult(obj);
-//            }
+        /// <inheritdoc />
+        public async Task<TEntity> GetEntity(int id)
+        {
+            const string segmentName = "id";
+            var req = new RestRequest($"{{{segmentName}}}");
+            req.AddUrlSegment(segmentName, id);
 
-//            return new StatusCodeResult((int)res.StatusCode);
-//        }
+            IRestResponse res = await client.ExecuteAsync(req, Method.GET);
 
-//        async Task<IActionResult> IAdvancedController<TEntity>.Delete(TEntity entity)
-//        {
-//            var req = new RestRequest();
-//            req.AddJsonBody(entity);
+            return DeserializeEntity(res);
+        }
 
-//            var res = await client.ExecuteAsync(req, Method.DELETE);
+        /// <inheritdoc />
+        public async Task<TEntity> GetOrAddEntity(TDto entity)
+        {
+            var req = new RestRequest();
+            req.AddJsonBody(entity);
 
-//            if (res.IsSuccessful) return new OkResult();
-//            return new StatusCodeResult((int)res.StatusCode);
-//}
+            IRestResponse res = await client.ExecuteAsync(req, Method.POST);
 
-//        async Task<ActionResult<TEntity>> IAdvancedController<TEntity>.Post(TEntity entity)
-//        {
-//            var req = new RestRequest();
-//            req.AddJsonBody(entity);
+            return DeserializeEntity(res);
+        }
 
-//            var res = await client.ExecuteAsync(req, Method.POST);
+        /// <inheritdoc />
+        public async Task<TEntity> UpdateAndGetEntity(TEntity entity)
+        {
+            var req = new RestRequest();
+            req.AddJsonBody(entity);
 
-//            if (res.IsSuccessful) 
-//            {
-//                var obj = JsonConvert.DeserializeObject<TEntity>(res.Content);
-//                return new OkObjectResult(obj);
-//            }
+            IRestResponse res = await client.ExecuteAsync(req, Method.PUT);
 
-//            return new StatusCodeResult((int)res.StatusCode);
-//        }
+            return DeserializeEntity(res);
+        }
 
-//        async Task<ActionResult<TEntity>> IAdvancedController<TEntity>.Put(TEntity entity)
-//        {
-//            var req = new RestRequest();
-//            req.AddJsonBody(entity);
+        /// <inheritdoc />
+        public async Task<bool> DeleteEntity(int id)
+        {
+            const string segmentName = "id";
+            var req = new RestRequest($"{{{segmentName}}}");
+            req.AddUrlSegment(segmentName, id);
 
-//            var res = await client.ExecuteAsync(req, Method.PUT);
+            IRestResponse res = await client.ExecuteAsync(req, Method.DELETE);
 
-//            if (res.IsSuccessful)
-//            {
-//                var obj = JsonConvert.DeserializeObject<TEntity>(res.Content);
-//                return new OkObjectResult(obj);
-//            }
+            if (!res.IsSuccessful)
+                throw new Exception($"Request Failed - Status Code: {res.StatusCode}");
 
-//            return new StatusCodeResult((int)res.StatusCode);
-//        }
+            return true;
+        }
 
-//        #endregion
+        private TEntity DeserializeEntity(IRestResponse response)
+        {
+            if (!response.IsSuccessful)
+                throw new Exception($"Request Failed - Status Code: {response.StatusCode}");
 
-//        public async Task<IEnumerable<TEntity>> GetEntities(TEntity entity)
-//        {
-//            var retrieved = (await ((IAdvancedController<TEntity>)this).Get(entity)).Value;
-//            return retrieved;
-//        }
-
-//        public async Task<TEntity> GetOrAddEntity(TEntity entity)
-//        {
-//            var retrieved = (await ((IAdvancedController<TEntity>)this).Post(entity)).Value;
-//            return retrieved;
-//        }
-
-//        public async Task<TEntity> UpdateAndGetEntity(TEntity entity)
-//        {
-//            var retrieved = (await ((IAdvancedController<TEntity>)this).Put(entity)).Value;
-//            return retrieved;
-//        }
-
-//        public async Task<bool> DeleteEntity(TEntity entity)
-//        {
-//            var retrieved = (await ((IAdvancedController<TEntity>)this).Delete(entity));
-            
-//            if (retrieved is OkObjectResult) return true;
-//            return false;
-//        }
+            var obj = JsonConvert.DeserializeObject<TEntity>(response.Content);
+            return obj;
+        }
     }
 }

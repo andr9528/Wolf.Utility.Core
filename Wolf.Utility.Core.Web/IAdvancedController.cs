@@ -5,11 +5,14 @@ using Wolf.Utility.Core.Persistence.Core;
 
 namespace Wolf.Utility.Core.Web
 {
-    public interface IAdvancedController<TEntity> where TEntity : IEntity
+    public interface IAdvancedController<TEntity, TSearchable, TDto> where TEntity : class, IEntity
+        where TSearchable : class, ISearchableEntity
+        where TDto : class, IDto
     {
-        Task<ActionResult<IEnumerable<TEntity>>> Get(TEntity entity);
-        Task<ActionResult<TEntity>> Put(TEntity entity);
-        Task<ActionResult<TEntity>> Post(TEntity entity);
-        Task<IActionResult> Delete(TEntity entity);
+        Task<ActionResult<IEnumerable<TEntity>>> Get(TSearchable entity);
+        Task<ActionResult<TEntity>> GetDetails(int id);
+        Task<ActionResult<TEntity>> Update(TEntity entity);
+        Task<ActionResult<TEntity>> Add(TDto entity);
+        Task<IActionResult> Delete(int id);
     }
 }
