@@ -44,7 +44,7 @@ namespace Wolf.Utility.Core.Web.Startup
 
         }
 
-        public void SetupServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services)
         {
             //TProxy proxy = null;
             //if (useHandlerConstructor)

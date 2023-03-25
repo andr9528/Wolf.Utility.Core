@@ -27,7 +27,7 @@ namespace Wolf.Utility.Core.Persistence.EntityFramework
             SetupOptions = setup ?? throw new ArgumentNullException(nameof(setup));
         }
 
-        public void SetupServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<TContext>(option => SetupOptions?.Invoke(option));
 

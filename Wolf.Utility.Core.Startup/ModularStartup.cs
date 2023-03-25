@@ -17,7 +17,7 @@ namespace Wolf.Utility.Core.Startup
         private readonly List<IStartupModule> _modules;
 
         /// <summary>
-        /// Remember to call 'SetupServices' during 'ConfigureServices' and 'ConfigureApplication' during 'Configure'!
+        /// Remember to call 'ConfigureServices' during 'ConfigureServices' and 'ConfigureApplication' during 'Configure'!
         /// Make use of the 'AddModule' method during the constructor of the Startup, to create and add necessary modules for the project.
         /// </summary>
         /// <param name="config"></param>
@@ -30,7 +30,7 @@ namespace Wolf.Utility.Core.Startup
 
         /// <summary>
         /// Expects a 'appsettings.json' file in the main directory.
-        /// Remember to call 'SetupServices' during 'ConfigureServices' and 'ConfigureApplication' during 'Configure'!
+        /// Remember to call 'ConfigureServices' during 'ConfigureServices' and 'ConfigureApplication' during 'Configure'!
         /// Make use of the 'AddModule' method during the constructor of the Startup, to create and add necessary modules for the project.
         /// </summary>
         /// <param name="modules"></param>
@@ -65,7 +65,7 @@ namespace Wolf.Utility.Core.Startup
 
             foreach (IStartupModule module in _modules)
             {
-                module.SetupServices(services);
+                module.ConfigureServices(services);
             }
 
             ServiceProvider = Services.BuildServiceProvider();

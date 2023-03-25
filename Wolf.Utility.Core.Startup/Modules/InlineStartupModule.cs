@@ -33,7 +33,7 @@ namespace Wolf.Utility.Core.Startup.Modules
             Configure?.Invoke(app);
         }
 
-        public void SetupServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services)
         {
             Setup?.Invoke(services);
         }

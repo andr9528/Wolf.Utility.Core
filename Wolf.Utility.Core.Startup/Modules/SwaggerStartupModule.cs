@@ -15,7 +15,7 @@ namespace Wolf.Utility.Core.Startup.Modules
             
         }
 
-        public void SetupServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services)
         {
             // Register the Swagger generator, defining 1 or more Swagger documents
             services.AddSwaggerGen(c =>

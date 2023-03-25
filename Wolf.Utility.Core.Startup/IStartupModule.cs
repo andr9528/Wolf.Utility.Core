@@ -9,7 +9,7 @@ namespace Wolf.Utility.Core.Startup
 {
     public interface IStartupModule
     {
-        void SetupServices(IServiceCollection services);
+        void ConfigureServices(IServiceCollection services);
         void ConfigureApplication(IApplicationBuilder app);
     }
 }

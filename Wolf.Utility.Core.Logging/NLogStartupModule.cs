@@ -39,7 +39,7 @@ namespace Wolf.Utility.Core.Logging
         /// Used https://stackoverflow.com/questions/61553415/using-nlog-console-logging-together-in-net-core-console-app
         /// </summary>
         /// <param name="services"></param>
-        public void SetupServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services)
         {
             services.AddTransient<ILoggerManager, LoggerManager>();
 
